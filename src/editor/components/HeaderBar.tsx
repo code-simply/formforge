@@ -14,9 +14,11 @@ import {
   Sun,
   Moon,
   Code2,
+  Webhook,
 } from 'lucide-react'
 import { JsonDialog } from './JsonDialog'
 import { CodeDialog } from './CodeDialog'
+import { WebhookDialog } from './WebhookDialog'
 import { TEMPLATES } from '../templates'
 
 export const HeaderBar: React.FC = () => {
@@ -30,11 +32,13 @@ export const HeaderBar: React.FC = () => {
     future,
     clear,
     setSchema,
+    updateSettings,
   } = useBuilderStore()
 
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [jsonDialogMode, setJsonDialogMode] = useState<'export' | 'import'>('export')
   const [codeDialogOpen, setCodeDialogOpen] = useState(false)
+  const [webhookDialogOpen, setWebhookDialogOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
   const [showTemplatesMenu, setShowTemplatesMenu] = useState(false)
 
@@ -154,6 +158,21 @@ export const HeaderBar: React.FC = () => {
           <span className="hidden sm:inline">Code</span>
         </Button>
 
+        {/* Webhook & Key Remapping */}
+        <Button
+          variant={schema.settings?.webhook?.enabled ? 'secondary' : 'outline'}
+          size="sm"
+          onClick={() => setWebhookDialogOpen(true)}
+          className="h-8 px-2 sm:px-2.5 text-xs relative"
+          title="Configure Webhook & JSON Key Remapping"
+        >
+          <Webhook className="h-3.5 w-3.5 sm:mr-1" />
+          <span className="hidden md:inline">Webhook</span>
+          {schema.settings?.webhook?.enabled && (
+            <span className="h-1.5 w-1.5 rounded-full bg-foreground ml-1" />
+          )}
+        </Button>
+
         {/* Export JSON */}
         <Button
           variant="outline"
@@ -248,6 +267,13 @@ export const HeaderBar: React.FC = () => {
         isOpen={codeDialogOpen}
         onClose={() => setCodeDialogOpen(false)}
         schema={schema}
+      />
+
+      <WebhookDialog
+        isOpen={webhookDialogOpen}
+        onClose={() => setWebhookDialogOpen(false)}
+        schema={schema}
+        onSave={(cfg) => updateSettings({ webhook: cfg })}
       />
     </header>
   )

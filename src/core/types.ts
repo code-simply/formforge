@@ -22,6 +22,9 @@ export type FieldType =
   | 'paragraph'
   | 'separator'
   | 'button'
+  | 'logo'
+  | 'image'
+  | 'avatar'
 
 export type ConditionOperator =
   | 'equals'
@@ -92,6 +95,41 @@ export interface RepeatRowConfig {
   fieldTemplate: FormField[]
 }
 
+export interface LogoConfig {
+  url: string
+  alt?: string
+  align?: 'left' | 'center' | 'right'
+  width?: number // in px
+  linkUrl?: string
+}
+
+export interface ImageConfig {
+  url: string
+  alt?: string
+  caption?: string
+  aspectRatio?: 'auto' | '16/9' | '4/3' | '1/1'
+  rounded?: 'none' | 'sm' | 'md' | 'lg' | 'full'
+  align?: 'left' | 'center' | 'right'
+}
+
+export interface AvatarConfig {
+  url: string
+  fallbackText?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl'
+  shape?: 'circle' | 'rounded'
+  status?: 'online' | 'offline' | 'busy' | 'none'
+  subtitle?: string
+}
+
+export interface WebhookConfig {
+  enabled: boolean
+  url: string
+  method?: 'POST' | 'PUT'
+  headers?: Record<string, string>
+  keyMapping?: Record<string, string> // internalKey -> externalKey
+  staticPayload?: Record<string, unknown>
+}
+
 export interface FormField {
   id: string
   type: FieldType
@@ -112,6 +150,9 @@ export interface FormField {
   conditions?: ConditionGroup[]
   matrixConfig?: MatrixFieldConfig
   repeatRowConfig?: RepeatRowConfig
+  logoConfig?: LogoConfig
+  imageConfig?: ImageConfig
+  avatarConfig?: AvatarConfig
   customAttributes?: Record<string, unknown>
 }
 
@@ -146,6 +187,9 @@ export interface FormSettings {
   theme?: 'light' | 'dark' | 'system'
   showProgressBar?: boolean
   allowPageNavigation?: boolean
+  formMode?: 'single-page' | 'wizard' | 'conversational'
+  themePreset?: 'monochrome-zinc' | 'slate' | 'neutral' | 'minimal-outline' | 'flat-borderless'
+  webhook?: WebhookConfig
 }
 
 export interface FormBuilderSchema {

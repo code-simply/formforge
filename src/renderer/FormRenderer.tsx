@@ -1,18 +1,20 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { FormProvider } from 'react-hook-form'
 import { FormBuilderSchema } from '../core/types'
 import { CustomFieldComponentProps } from '../core/customFields'
+import { sendWebhookPayload, WebhookSendResult } from '../core/webhook'
 import { useFormEngine } from './useFormEngine'
 import { FormPageRenderer } from './FormPage'
 import { Button } from '../ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '../ui/utils'
 
 export interface FormRendererProps {
   schema: FormBuilderSchema
   defaultValues?: Record<string, unknown>
   onSubmit?: (data: Record<string, unknown>) => void
+  onWebhookResponse?: (result: WebhookSendResult) => void
   className?: string
   cardWrapper?: boolean
   customFields?: Record<string, React.ComponentType<CustomFieldComponentProps>>
@@ -22,14 +24,45 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   schema,
   defaultValues,
   onSubmit,
+  onWebhookResponse,
   className,
   cardWrapper = true,
   customFields,
 }) => {
+  const [webhookStatus, setWebhookStatus] = useState<WebhookSendResult | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleFormSubmit = async (data: Record<string, unknown>) => {
+    setIsSubmitting(true)
+
+    // Optional webhook delivery
+    if (schema.settings?.webhook?.enabled && schema.settings?.webhook?.url) {
+      try {
+        const result = await sendWebhookPayload(schema.settings.webhook, data)
+        setWebhookStatus(result)
+        if (onWebhookResponse) {
+          onWebhookResponse(result)
+        }
+      } catch (err: any) {
+        setWebhookStatus({
+          success: false,
+          status: 0,
+          message: err?.message || 'Failed to dispatch webhook',
+        })
+      }
+    }
+
+    if (onSubmit) {
+      onSubmit(data)
+    }
+
+    setIsSubmitting(false)
+  }
+
   const engine = useFormEngine({
     schema,
     defaultValues,
-    onSubmit,
+    onSubmit: handleFormSubmit,
   })
 
   const {
@@ -51,7 +84,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   const errors = form.formState.errors
 
-  const isMultiPage = visiblePages.length > 1
+  const formMode = schema.settings?.formMode || (visiblePages.length > 1 ? 'wizard' : 'single-page')
+  const isMultiPage = visiblePages.length > 1 && formMode !== 'single-page'
   const submitText = schema.settings?.submitButtonText || 'Submit'
   const showReset = schema.settings?.showResetButton || false
   const resetText = schema.settings?.resetButtonText || 'Reset'
@@ -59,7 +93,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   const content = (
     <FormProvider {...form}>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Progress bar for multi-page forms */}
+        {/* Wizard / Step Progress Header */}
         {isMultiPage && schema.settings?.showProgressBar && (
           <div className="space-y-2">
             <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
@@ -78,14 +112,14 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
             {/* Step navigation tabs */}
             {schema.settings?.allowPageNavigation && (
-              <div className="flex space-x-1 pt-2 overflow-x-auto">
+              <div className="flex space-x-1 pt-2 overflow-x-auto no-scrollbar">
                 {visiblePages.map((page, idx) => (
                   <button
                     key={page.id}
                     type="button"
                     onClick={() => goToPage(idx)}
                     className={cn(
-                      'px-3 py-1 text-xs rounded-md font-medium transition-colors',
+                      'px-2.5 py-1 text-xs rounded-md font-medium transition-colors shrink-0',
                       idx === currentPageIndex
                         ? 'bg-primary text-primary-foreground'
                         : idx < currentPageIndex
@@ -101,17 +135,55 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           </div>
         )}
 
-        {/* Current Active Page */}
-        {currentPage && (
-          <FormPageRenderer
-            page={currentPage}
-            schema={schema}
-            visibleFieldsMap={visibleFieldsMap}
-            fieldStateMap={fieldStateMap}
-            isRowVisible={isRowVisible}
-            errors={errors}
-            customFields={customFields}
-          />
+        {/* Form Page Content */}
+        {formMode === 'single-page' ? (
+          // Single-Page Continuous Mode (Renders all pages/sections)
+          <div className="space-y-8">
+            {visiblePages.map((page) => (
+              <FormPageRenderer
+                key={page.id}
+                page={page}
+                schema={schema}
+                visibleFieldsMap={visibleFieldsMap}
+                fieldStateMap={fieldStateMap}
+                isRowVisible={isRowVisible}
+                errors={errors}
+                customFields={customFields}
+              />
+            ))}
+          </div>
+        ) : (
+          // Wizard / Conversational Mode (Renders active page)
+          currentPage && (
+            <FormPageRenderer
+              page={currentPage}
+              schema={schema}
+              visibleFieldsMap={visibleFieldsMap}
+              fieldStateMap={fieldStateMap}
+              isRowVisible={isRowVisible}
+              errors={errors}
+              customFields={customFields}
+            />
+          )
+        )}
+
+        {/* Webhook Feedback Banner */}
+        {webhookStatus && (
+          <div
+            className={cn(
+              'p-3 rounded-lg border text-xs flex items-center space-x-2',
+              webhookStatus.success
+                ? 'bg-muted/50 border-foreground/20 text-foreground'
+                : 'bg-destructive/10 border-destructive/30 text-destructive'
+            )}
+          >
+            {webhookStatus.success ? (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-foreground" />
+            ) : (
+              <AlertCircle className="h-4 w-4 shrink-0 text-destructive" />
+            )}
+            <span className="flex-1 font-medium">{webhookStatus.message}</span>
+          </div>
         )}
 
         {/* Action Controls */}
@@ -122,7 +194,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => form.reset()}
+                onClick={() => {
+                  form.reset()
+                  setWebhookStatus(null)
+                }}
               >
                 {resetText}
               </Button>
@@ -152,8 +227,12 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                 <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
-              <Button type="submit" size="sm">
-                <Check className="h-4 w-4 mr-1" />
+              <Button type="submit" size="sm" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 mr-1" />
+                )}
                 {submitText}
               </Button>
             )}
@@ -165,7 +244,13 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   if (cardWrapper) {
     return (
-      <Card className={cn('w-full shadow-sm', className)}>
+      <Card
+        className={cn(
+          'w-full shadow-sm',
+          formMode === 'conversational' && 'max-w-xl mx-auto shadow-md border-border/90',
+          className
+        )}
+      >
         {(schema.title || schema.description) && (
           <CardHeader>
             {schema.title && <CardTitle>{schema.title}</CardTitle>}

@@ -180,6 +180,46 @@ export function getDefaultFieldValues(type: FieldType, id: string): FormField {
         defaultValue: 'Click Me',
       }
 
+    case 'logo':
+      return {
+        ...base,
+        label: 'Brand Logo',
+        logoConfig: {
+          url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80',
+          alt: 'Company Logo',
+          align: 'left',
+          width: 140,
+        },
+      }
+
+    case 'image':
+      return {
+        ...base,
+        label: 'Header Banner',
+        imageConfig: {
+          url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80',
+          alt: 'Visual Banner',
+          caption: 'Visual Header Illustration',
+          aspectRatio: '16/9',
+          rounded: 'md',
+          align: 'center',
+        },
+      }
+
+    case 'avatar':
+      return {
+        ...base,
+        label: 'Profile Avatar',
+        avatarConfig: {
+          url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          fallbackText: 'AG',
+          size: 'md',
+          shape: 'circle',
+          status: 'online',
+          subtitle: 'Support Agent',
+        },
+      }
+
     default:
       return base
   }
@@ -527,7 +567,7 @@ export function buildZodValidationSchema(
     // Hidden or static fields don't require input validation
     if (
       !visibleFieldIds.has(field.id) ||
-      ['heading', 'paragraph', 'separator', 'button'].includes(field.type)
+      ['heading', 'paragraph', 'separator', 'button', 'logo', 'image', 'avatar'].includes(field.type)
     ) {
       continue
     }

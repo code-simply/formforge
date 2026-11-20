@@ -40,7 +40,7 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
   const { control } = useFormContext()
   const fieldKey = field.name || field.id
 
-  const isStatic = ['heading', 'paragraph', 'separator', 'button'].includes(field.type)
+  const isStatic = ['heading', 'paragraph', 'separator', 'button', 'logo', 'image', 'avatar'].includes(field.type)
 
   // Check for custom field component (passed via prop or globally registered)
   const CustomComponent = customFields[field.type] || getCustomField(field.type)?.component
@@ -602,6 +602,119 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
           >
             {field.defaultValue ? String(field.defaultValue) : field.label}
           </Button>
+        )
+      }
+
+      case 'logo': {
+        const logo = field.logoConfig
+        const alignClass =
+          logo?.align === 'center'
+            ? 'justify-center'
+            : logo?.align === 'right'
+            ? 'justify-end'
+            : 'justify-start'
+
+        const img = (
+          <img
+            src={logo?.url || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80'}
+            alt={logo?.alt || field.label}
+            style={{ maxWidth: logo?.width ? `${logo.width}px` : '150px' }}
+            className="h-auto max-h-16 object-contain"
+          />
+        )
+
+        return (
+          <div className={cn('flex items-center w-full py-1', alignClass)}>
+            {logo?.linkUrl ? (
+              <a href={logo.linkUrl} target="_blank" rel="noopener noreferrer" className="hover:opacity-85 transition-opacity">
+                {img}
+              </a>
+            ) : (
+              img
+            )}
+          </div>
+        )
+      }
+
+      case 'image': {
+        const image = field.imageConfig
+        const roundedClass =
+          image?.rounded === 'none'
+            ? 'rounded-none'
+            : image?.rounded === 'sm'
+            ? 'rounded-sm'
+            : image?.rounded === 'lg'
+            ? 'rounded-xl'
+            : image?.rounded === 'full'
+            ? 'rounded-full'
+            : 'rounded-lg'
+
+        const aspectClass =
+          image?.aspectRatio === '16/9'
+            ? 'aspect-video'
+            : image?.aspectRatio === '4/3'
+            ? 'aspect-[4/3]'
+            : image?.aspectRatio === '1/1'
+            ? 'aspect-square'
+            : 'h-auto max-h-80'
+
+        return (
+          <figure className="w-full space-y-1.5 py-1">
+            <img
+              src={image?.url || 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&auto=format&fit=crop&q=80'}
+              alt={image?.alt || field.label}
+              className={cn('w-full object-cover border border-border/80 shadow-sm', roundedClass, aspectClass)}
+            />
+            {image?.caption && (
+              <figcaption className="text-[11px] text-muted-foreground text-center font-normal">
+                {image.caption}
+              </figcaption>
+            )}
+          </figure>
+        )
+      }
+
+      case 'avatar': {
+        const avatar = field.avatarConfig
+        const sizeClass =
+          avatar?.size === 'sm'
+            ? 'h-8 w-8 text-xs'
+            : avatar?.size === 'lg'
+            ? 'h-16 w-16 text-base'
+            : avatar?.size === 'xl'
+            ? 'h-20 w-20 text-lg'
+            : 'h-12 w-12 text-sm'
+
+        const shapeClass = avatar?.shape === 'rounded' ? 'rounded-xl' : 'rounded-full'
+
+        return (
+          <div className="flex items-center space-x-3 py-1">
+            <div className="relative shrink-0">
+              <img
+                src={avatar?.url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
+                alt={field.label}
+                className={cn('object-cover border border-border/80 shadow-sm bg-muted', sizeClass, shapeClass)}
+              />
+              {avatar?.status && avatar.status !== 'none' && (
+                <span
+                  className={cn(
+                    'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-background',
+                    avatar.status === 'online'
+                      ? 'bg-foreground'
+                      : avatar.status === 'busy'
+                      ? 'bg-foreground/50'
+                      : 'bg-muted-foreground/30'
+                  )}
+                />
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground leading-tight">{field.label}</p>
+              {avatar?.subtitle && (
+                <p className="text-xs text-muted-foreground mt-0.5">{avatar.subtitle}</p>
+              )}
+            </div>
+          </div>
         )
       }
 

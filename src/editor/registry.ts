@@ -20,6 +20,9 @@ import {
   FileText,
   Minus,
   PlaySquare,
+  Image as ImageIcon,
+  Hexagon,
+  UserCircle2,
 } from 'lucide-react'
 
 export interface FieldDefinition {
@@ -177,5 +180,26 @@ export const FIELD_REGISTRY: FieldDefinition[] = [
     description: 'Custom clickable button',
     category: 'layout',
     icon: PlaySquare,
+  },
+  {
+    type: 'logo',
+    label: 'Brand Logo',
+    description: 'Header logo image or icon',
+    category: 'layout',
+    icon: Hexagon,
+  },
+  {
+    type: 'image',
+    label: 'Image Banner',
+    description: 'Visual banner illustration',
+    category: 'layout',
+    icon: ImageIcon,
+  },
+  {
+    type: 'avatar',
+    label: 'Circular Avatar',
+    description: 'Agent or user profile avatar',
+    category: 'layout',
+    icon: UserCircle2,
   },
 ]

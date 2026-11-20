@@ -24,6 +24,9 @@ export const FieldTypeSchema = z.enum([
   'paragraph',
   'separator',
   'button',
+  'logo',
+  'image',
+  'avatar',
 ])
 
 export const ConditionOperatorSchema = z.enum([
@@ -88,6 +91,41 @@ export const MatrixFieldConfigSchema = z.object({
   columns: z.array(MatrixColumnConfigSchema).default([]),
 })
 
+export const LogoConfigSchema = z.object({
+  url: z.string(),
+  alt: z.string().optional(),
+  align: z.enum(['left', 'center', 'right']).default('left'),
+  width: z.number().optional(),
+  linkUrl: z.string().optional(),
+})
+
+export const ImageConfigSchema = z.object({
+  url: z.string(),
+  alt: z.string().optional(),
+  caption: z.string().optional(),
+  aspectRatio: z.enum(['auto', '16/9', '4/3', '1/1']).default('auto'),
+  rounded: z.enum(['none', 'sm', 'md', 'lg', 'full']).default('md'),
+  align: z.enum(['left', 'center', 'right']).default('center'),
+})
+
+export const AvatarConfigSchema = z.object({
+  url: z.string(),
+  fallbackText: z.string().optional(),
+  size: z.enum(['sm', 'md', 'lg', 'xl']).default('md'),
+  shape: z.enum(['circle', 'rounded']).default('circle'),
+  status: z.enum(['online', 'offline', 'busy', 'none']).default('none'),
+  subtitle: z.string().optional(),
+})
+
+export const WebhookConfigSchema = z.object({
+  enabled: z.boolean().default(false),
+  url: z.string().default(''),
+  method: z.enum(['POST', 'PUT']).default('POST'),
+  headers: z.record(z.string()).optional(),
+  keyMapping: z.record(z.string()).optional(),
+  staticPayload: z.record(z.unknown()).optional(),
+})
+
 export const FormFieldSchema: z.ZodType<any> = z.lazy(() =>
   z.object({
     id: z.string(),
@@ -108,6 +146,9 @@ export const FormFieldSchema: z.ZodType<any> = z.lazy(() =>
     validationRules: z.array(ValidationRuleSchema).optional(),
     conditions: z.array(ConditionGroupSchema).optional(),
     matrixConfig: MatrixFieldConfigSchema.optional(),
+    logoConfig: LogoConfigSchema.optional(),
+    imageConfig: ImageConfigSchema.optional(),
+    avatarConfig: AvatarConfigSchema.optional(),
     repeatRowConfig: z
       .object({
         minRows: z.number().optional(),
@@ -152,6 +193,9 @@ export const FormSettingsSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).default('system'),
   showProgressBar: z.boolean().default(true),
   allowPageNavigation: z.boolean().default(true),
+  formMode: z.enum(['single-page', 'wizard', 'conversational']).default('wizard'),
+  themePreset: z.enum(['monochrome-zinc', 'slate', 'neutral', 'minimal-outline', 'flat-borderless']).default('monochrome-zinc'),
+  webhook: WebhookConfigSchema.optional(),
 })
 
 export const FormBuilderSchemaZod = z.object({
