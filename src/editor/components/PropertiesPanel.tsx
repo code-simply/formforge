@@ -24,7 +24,7 @@ export const PropertiesPanel: React.FC = () => {
 
   if (!field) {
     return (
-      <aside className="w-80 border-l bg-card flex flex-col h-full overflow-hidden shrink-0">
+      <aside className="w-full lg:w-80 border-l bg-card flex flex-col h-full overflow-hidden shrink-0">
         <div className="p-4 border-b">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Properties Inspector
@@ -87,7 +87,7 @@ export const PropertiesPanel: React.FC = () => {
   }
 
   return (
-    <aside className="w-80 border-l bg-card flex flex-col h-full overflow-hidden shrink-0">
+    <aside className="w-full lg:w-80 border-l bg-card flex flex-col h-full overflow-hidden shrink-0">
       <div className="p-3 border-b flex items-center justify-between">
         <div>
           <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

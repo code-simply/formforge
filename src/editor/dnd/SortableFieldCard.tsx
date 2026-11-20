@@ -58,43 +58,43 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         onSelect()
       }}
       className={cn(
-        'group/field relative rounded-lg border bg-background p-3 transition-all cursor-pointer shadow-sm select-none',
+        'group/field relative rounded-lg border bg-background p-2.5 sm:p-3 transition-all cursor-pointer shadow-sm select-none',
         isSelected
-          ? 'border-primary ring-2 ring-primary/20 bg-primary/[0.02]'
-          : 'hover:border-primary/40',
-        isDragging && 'opacity-30 border-dashed border-primary'
+          ? 'border-foreground ring-1 ring-foreground/20 bg-muted/20'
+          : 'hover:border-foreground/30',
+        isDragging && 'opacity-30 border-dashed border-foreground'
       )}
     >
       {/* Field Header */}
       <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 overflow-hidden">
           {/* Drag Handle */}
           <div
             {...attributes}
             {...listeners}
             onClick={(e) => e.stopPropagation()}
-            className="cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground p-0.5 rounded"
+            className="cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground p-0.5 rounded shrink-0"
             title="Drag to reorder"
           >
             <GripVertical className="h-3.5 w-3.5" />
           </div>
 
-          <Icon className="h-3.5 w-3.5 text-primary" />
-          <span className="text-xs font-semibold text-foreground">
+          <Icon className="h-3.5 w-3.5 text-foreground shrink-0" />
+          <span className="text-xs font-semibold text-foreground truncate">
             {field.label}
           </span>
           {field.required && (
-            <span className="text-destructive font-bold text-xs">*</span>
+            <span className="text-foreground/70 font-bold text-xs shrink-0">*</span>
           )}
           {field.conditions && field.conditions.length > 0 && (
-            <Badge variant="secondary" className="text-[9px] h-4 px-1">
+            <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0 font-normal">
               Rule
             </Badge>
           )}
         </div>
 
         {/* Quick Actions */}
-        <div className="opacity-0 group-hover/field:opacity-100 flex items-center space-x-1 transition-opacity">
+        <div className="opacity-80 sm:opacity-0 group-hover/field:opacity-100 flex items-center space-x-0.5 transition-opacity shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -114,7 +114,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               e.stopPropagation()
               onRemove()
             }}
-            className="h-6 w-6 text-destructive hover:bg-destructive/10"
+            className="h-6 w-6 text-muted-foreground hover:text-destructive"
             title="Delete"
           >
             <Trash2 className="h-3 w-3" />
@@ -123,8 +123,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
       </div>
 
       {/* Field Mock Preview */}
-      <div className="text-xs text-muted-foreground/70 border rounded px-2.5 py-1.5 bg-muted/20 truncate">
-        {field.placeholder || `[${field.type} control]`}
+      <div className="text-[11px] text-muted-foreground/70 border border-border/70 rounded px-2.5 py-1 bg-muted/15 truncate font-normal">
+        {field.placeholder || `[${field.type}]`}
       </div>
     </div>
   )

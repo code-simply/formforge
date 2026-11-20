@@ -35,7 +35,7 @@ export const DraggablePaletteItem: React.FC<DraggablePaletteItemProps> = ({
         className="flex items-center space-x-2.5 flex-1 cursor-pointer"
         onClick={onClick}
       >
-        <div className="p-1 rounded bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors">
+        <div className="p-1 rounded bg-muted text-foreground group-hover:bg-primary group-hover:text-primary-foreground transition-colors shrink-0">
           <Icon className="h-4 w-4" />
         </div>
         <div>
@@ -48,11 +48,11 @@ export const DraggablePaletteItem: React.FC<DraggablePaletteItemProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center space-x-1">
+      <div className="flex items-center space-x-1 shrink-0">
         <button
           type="button"
           onClick={onClick}
-          className="p-1 text-muted-foreground hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+          className="p-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
           title="Click to add to canvas"
         >
           <Plus className="h-3.5 w-3.5" />
@@ -61,7 +61,7 @@ export const DraggablePaletteItem: React.FC<DraggablePaletteItemProps> = ({
         <div
           {...attributes}
           {...listeners}
-          className="p-1 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground opacity-60 group-hover:opacity-100"
+          className="p-1 cursor-grab active:cursor-grabbing text-muted-foreground/60 hover:text-foreground opacity-60 group-hover:opacity-100"
           title="Drag onto canvas"
         >
           <GripVertical className="h-3.5 w-3.5" />

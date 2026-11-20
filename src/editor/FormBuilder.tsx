@@ -18,7 +18,8 @@ import { Canvas } from './components/Canvas'
 import { PropertiesPanel } from './components/PropertiesPanel'
 import { FormRenderer } from '../renderer/FormRenderer'
 import { FIELD_REGISTRY } from './registry'
-import { Layers } from 'lucide-react'
+import { Layers, SlidersHorizontal, PlusSquare } from 'lucide-react'
+import { cn } from '../ui/utils'
 
 export interface FormBuilderProps {
   initialSchema?: FormBuilderSchema
@@ -50,6 +51,9 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     icon?: any
   } | null>(null)
 
+  // Mobile & tablet navigation tab ('palette' | 'canvas' | 'properties')
+  const [mobileTab, setMobileTab] = useState<'palette' | 'canvas' | 'properties'>('canvas')
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -70,6 +74,13 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       onChange(schema)
     }
   }, [schema, onChange])
+
+  // When a field is selected on mobile, auto-switch to properties
+  useEffect(() => {
+    if (selectedFieldId && window.innerWidth < 1024) {
+      setMobileTab('properties')
+    }
+  }, [selectedFieldId])
 
   // Global Keyboard Shortcuts (Ctrl+Z, Ctrl+Y, Escape, Delete)
   useEffect(() => {
@@ -187,11 +198,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className={`flex flex-col h-screen w-full overflow-hidden bg-background ${className || ''}`}>
+      <div className={cn('flex flex-col h-screen w-full overflow-hidden bg-background text-foreground', className)}>
         <HeaderBar />
 
         {previewMode ? (
-          <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-muted/40">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-muted/20">
             <div className="w-full max-w-3xl">
               <FormRenderer
                 schema={schema}
@@ -202,16 +213,90 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             </div>
           </div>
         ) : (
-          <div className="flex flex-1 overflow-hidden">
-            <PaletteSidebar />
-            <Canvas />
-            <PropertiesPanel />
+          <div className="flex flex-col lg:flex-row flex-1 overflow-hidden relative">
+            {/* Desktop: 3-Column Split View. Mobile/Tablet: Active Tab Display */}
+
+            {/* Elements Palette */}
+            <div
+              className={cn(
+                'h-full lg:flex',
+                mobileTab === 'palette' ? 'flex flex-1 w-full' : 'hidden lg:flex'
+              )}
+            >
+              <PaletteSidebar />
+            </div>
+
+            {/* Canvas */}
+            <div
+              className={cn(
+                'h-full flex-1 overflow-hidden',
+                mobileTab === 'canvas' ? 'flex flex-col w-full' : 'hidden lg:flex'
+              )}
+            >
+              <Canvas />
+            </div>
+
+            {/* Properties Inspector */}
+            <div
+              className={cn(
+                'h-full lg:flex',
+                mobileTab === 'properties' ? 'flex flex-1 w-full' : 'hidden lg:flex'
+              )}
+            >
+              <PropertiesPanel />
+            </div>
+
+            {/* Mobile / Tablet Segmented Tab Bar (Hidden on Desktop) */}
+            <div className="lg:hidden border-t bg-card px-2 py-1.5 flex items-center justify-around shrink-0 z-20">
+              <button
+                type="button"
+                onClick={() => setMobileTab('palette')}
+                className={cn(
+                  'flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  mobileTab === 'palette'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+              >
+                <PlusSquare className="h-4 w-4" />
+                <span>Elements</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileTab('canvas')}
+                className={cn(
+                  'flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  mobileTab === 'canvas'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+              >
+                <Layers className="h-4 w-4" />
+                <span>Canvas</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileTab('properties')}
+                className={cn(
+                  'flex items-center space-x-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors',
+                  mobileTab === 'properties'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                <span>Properties</span>
+              </button>
+            </div>
           </div>
         )}
 
+        {/* Drag Overlay (Monochromatic) */}
         <DragOverlay>
           {activeDragItem ? (
-            <div className="flex items-center space-x-2 px-3 py-2 rounded-md border-2 border-primary bg-background shadow-xl text-xs font-semibold text-primary pointer-events-none opacity-90">
+            <div className="flex items-center space-x-2 px-3 py-2 rounded-md border-2 border-primary bg-background shadow-2xl text-xs font-semibold text-foreground pointer-events-none opacity-95">
               <DragIcon className="h-4 w-4" />
               <span>{activeDragItem.label}</span>
             </div>

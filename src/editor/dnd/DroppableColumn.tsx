@@ -60,11 +60,11 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
     <div
       ref={setNodeRef}
       className={cn(
-        'min-h-[80px] rounded-lg border border-dashed p-2.5 flex flex-col space-y-2 transition-all',
+        'min-h-[75px] rounded-lg border border-dashed p-2 flex flex-col space-y-2 transition-all',
         colSpanClass,
         isOver
-          ? 'border-primary bg-primary/[0.04] ring-1 ring-primary/30'
-          : 'border-border/80 bg-muted/20'
+          ? 'border-foreground/80 bg-muted/40 ring-1 ring-foreground/20'
+          : 'border-border bg-muted/10'
       )}
     >
       <SortableContext
@@ -72,9 +72,9 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
         strategy={verticalListSortingStrategy}
       >
         {column.fieldIds.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-3 text-center rounded text-muted-foreground/60 select-none">
-            <p className="text-[11px] font-medium">Empty Column ({column.width}/12)</p>
-            <p className="text-[10px] mt-0.5">Drag an element here or click from sidebar</p>
+          <div className="flex-1 flex flex-col items-center justify-center p-2.5 text-center rounded text-muted-foreground/60 select-none">
+            <p className="text-[11px] font-medium text-foreground/70">Column ({column.width}/12)</p>
+            <p className="text-[10px] text-muted-foreground">Drop elements here</p>
           </div>
         ) : (
           column.fieldIds.map((fId) => {

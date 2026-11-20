@@ -27,7 +27,7 @@ export const PaletteSidebar: React.FC = () => {
   }
 
   return (
-    <aside className="w-64 border-r bg-card flex flex-col h-full overflow-hidden shrink-0">
+    <aside className="w-full lg:w-64 border-r bg-card flex flex-col h-full overflow-hidden shrink-0">
       <div className="p-3 border-b">
         <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Form Elements
