@@ -8,11 +8,11 @@
   "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/parhtiban/formforge.git"
+    "url": "https://github.com/code-simply/formforge.git"
   },
-  "homepage": "https://github.com/parhtiban/formforge#readme",
+  "homepage": "https://github.com/code-simply/formforge#readme",
   "bugs": {
-    "url": "https://github.com/parhtiban/formforge/issues"
+    "url": "https://github.com/code-simply/formforge/issues"
   },
   "exports": {
     ".": {
@@ -52,7 +52,7 @@
     "tailwind",
     "typescript"
   ],
-  "author": "Parthiban",
+  "author": "Parthiban (https://github.com/code-simply)",
   "license": "MIT",
   "scripts": {
     "dev": "vite",

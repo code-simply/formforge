@@ -117,7 +117,7 @@ Contributions are warmly welcomed! Anyone can clone the repository, run the deve
 
 ```bash
 # Clone the repository
-git clone https://github.com/parhtiban/formforge.git
+git clone https://github.com/code-simply/formforge.git
 cd formforge
 
 # Install dependencies
@@ -137,4 +137,4 @@ npm run build
 
 ## 📄 License
 
-MIT © [Parthiban](https://github.com/parhtiban)
+MIT © [Parthiban (code-simply)](https://github.com/code-simply)
