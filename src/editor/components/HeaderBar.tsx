@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { Button } from '../../ui/button'
+import { Badge } from '../../ui/badge'
 import {
   Undo2,
   Redo2,
   Eye,
-  EyeOff,
   Trash2,
   Download,
   Upload,
@@ -16,6 +16,7 @@ import {
   Code2,
   Webhook,
   Inbox,
+  Columns2,
 } from 'lucide-react'
 import { JsonDialog } from './JsonDialog'
 import { CodeDialog } from './CodeDialog'
@@ -26,8 +27,8 @@ import { TEMPLATES } from '../templates'
 export const HeaderBar: React.FC = () => {
   const {
     schema,
-    previewMode,
-    setPreviewMode,
+    viewMode,
+    setViewMode,
     undo,
     redo,
     history,
@@ -63,17 +64,20 @@ export const HeaderBar: React.FC = () => {
     }
   }
 
+  const totalFields = Object.keys(schema.fields).length
+  const totalPages = schema.pageOrder.length
+
   return (
     <header className="flex h-14 items-center justify-between border-b bg-card px-3 sm:px-4 shrink-0 select-none">
       {/* Title & Brand */}
-      <div className="flex items-center space-x-2 sm:space-x-3 overflow-hidden">
+      <div className="flex items-center space-x-2 sm:space-x-2.5 overflow-hidden">
         <div className="flex items-center space-x-2 font-bold text-foreground shrink-0">
           <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
-          <span className="text-xs sm:text-sm font-semibold tracking-tight hidden sm:inline">
-            FormBuilder
+          <span className="text-xs sm:text-sm font-bold tracking-tight hidden sm:inline">
+            FormBuilder Studio
           </span>
         </div>
-        <span className="text-muted-foreground/60 hidden sm:inline">/</span>
+        <span className="text-muted-foreground/50 hidden sm:inline">/</span>
         <input
           type="text"
           value={schema.title}
@@ -83,8 +87,61 @@ export const HeaderBar: React.FC = () => {
             }))
           }
           placeholder="Untitled Form"
-          className="h-8 max-w-[130px] sm:max-w-[200px] md:max-w-xs bg-transparent px-2 text-xs sm:text-sm font-medium focus:bg-accent focus:outline-none rounded truncate"
+          className="h-8 max-w-[110px] sm:max-w-[160px] md:max-w-xs bg-transparent px-2 text-xs sm:text-sm font-medium focus:bg-accent focus:outline-none rounded truncate"
         />
+        <div className="hidden xl:flex items-center space-x-1 pl-1">
+          <Badge variant="outline" className="text-[10px] font-mono font-normal">
+            {totalPages} {totalPages === 1 ? 'Page' : 'Pages'}
+          </Badge>
+          <Badge variant="secondary" className="text-[10px] font-mono font-normal">
+            {totalFields} {totalFields === 1 ? 'Field' : 'Fields'}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Center: View Switcher Controls */}
+      <div className="flex items-center space-x-0.5 sm:space-x-1 bg-muted p-0.5 sm:p-1 rounded-lg">
+        <button
+          type="button"
+          onClick={() => setViewMode('builder')}
+          className={`px-2.5 sm:px-3 py-1 text-xs rounded-md font-medium transition-all flex items-center space-x-1.5 ${
+            viewMode === 'builder'
+              ? 'bg-background text-foreground shadow-2xs font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          title="Drag and Drop Builder"
+        >
+          <Layers className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Builder</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode('split')}
+          className={`px-2.5 sm:px-3 py-1 text-xs rounded-md font-medium transition-all flex items-center space-x-1.5 ${
+            viewMode === 'split'
+              ? 'bg-background text-foreground shadow-2xs font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          title="Side-by-side Builder & Live Preview"
+        >
+          <Columns2 className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Split View</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setViewMode('preview')}
+          className={`px-2.5 sm:px-3 py-1 text-xs rounded-md font-medium transition-all flex items-center space-x-1.5 ${
+            viewMode === 'preview'
+              ? 'bg-background text-foreground shadow-2xs font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+          title="Full Live Consumer Form Preview"
+        >
+          <Eye className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Live Form</span>
+        </button>
       </div>
 
       {/* Action Controls */}
@@ -248,28 +305,6 @@ export const HeaderBar: React.FC = () => {
           title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         >
           {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-        </Button>
-
-        <div className="h-4 w-[1px] bg-border mx-0.5 sm:mx-1" />
-
-        {/* Preview Mode Toggle */}
-        <Button
-          variant={previewMode ? 'secondary' : 'default'}
-          size="sm"
-          onClick={() => setPreviewMode(!previewMode)}
-          className="h-8 px-2.5 sm:px-3 text-xs font-medium"
-        >
-          {previewMode ? (
-            <>
-              <EyeOff className="h-3.5 w-3.5 sm:mr-1.5" />
-              <span className="hidden sm:inline">Exit Preview</span>
-            </>
-          ) : (
-            <>
-              <Eye className="h-3.5 w-3.5 sm:mr-1.5" />
-              <span className="hidden sm:inline">Preview</span>
-            </>
-          )}
         </Button>
       </div>
 

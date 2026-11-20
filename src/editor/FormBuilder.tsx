@@ -21,7 +21,8 @@ import { SubmissionsDialog } from './components/SubmissionsDialog'
 import { FormRenderer } from '../renderer/FormRenderer'
 import { FIELD_REGISTRY } from './registry'
 import { Button } from '../ui/button'
-import { Layers, SlidersHorizontal, PlusSquare, CheckCircle2, Inbox } from 'lucide-react'
+import { Badge } from '../ui/badge'
+import { Layers, SlidersHorizontal, PlusSquare, CheckCircle2, Inbox, Eye } from 'lucide-react'
 import { cn } from '../ui/utils'
 
 export interface FormBuilderProps {
@@ -38,6 +39,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
   const {
     schema,
     setSchema,
+    viewMode,
     previewMode,
     addField,
     moveField,
@@ -198,6 +200,35 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
   const DragIcon = activeDragItem?.icon || Layers
 
+  const handleFormSubmit = (values: Record<string, unknown>) => {
+    const subRecord: FormSubmissionRecord = {
+      id: `sub_${Date.now()}`,
+      formId: schema.id,
+      formTitle: schema.title,
+      timestamp: new Date().toISOString(),
+      values,
+      remappedValues: schema.settings?.webhook?.enabled
+        ? remapFormPayload(
+            values,
+            schema.settings.webhook.keyMapping,
+            schema.settings.webhook.staticPayload
+          )
+        : undefined,
+      webhookStatus: schema.settings?.webhook?.enabled
+        ? {
+            attempted: true,
+            success: true,
+            status: 200,
+            message: 'Dispatched to endpoint',
+          }
+        : undefined,
+    }
+    addSubmission(subRecord)
+    setLastSubmission(subRecord)
+  }
+
+  const isLivePreview = viewMode === 'preview' || previewMode
+
   return (
     <DndContext
       sensors={sensors}
@@ -208,7 +239,7 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
       <div className={cn('flex flex-col h-screen w-full overflow-hidden bg-background text-foreground', className)}>
         <HeaderBar />
 
-        {previewMode ? (
+        {isLivePreview ? (
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-muted/20">
             <div className="w-full max-w-3xl space-y-4">
               {lastSubmission && (
@@ -249,33 +280,73 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
               <FormRenderer
                 schema={schema}
-                onSubmit={(values) => {
-                  const subRecord: FormSubmissionRecord = {
-                    id: `sub_${Date.now()}`,
-                    formId: schema.id,
-                    formTitle: schema.title,
-                    timestamp: new Date().toISOString(),
-                    values,
-                    remappedValues: schema.settings?.webhook?.enabled
-                      ? remapFormPayload(
-                          values,
-                          schema.settings.webhook.keyMapping,
-                          schema.settings.webhook.staticPayload
-                        )
-                      : undefined,
-                    webhookStatus: schema.settings?.webhook?.enabled
-                      ? {
-                          attempted: true,
-                          success: true,
-                          status: 200,
-                          message: 'Dispatched to endpoint',
-                        }
-                      : undefined,
-                  }
-                  addSubmission(subRecord)
-                  setLastSubmission(subRecord)
-                }}
+                onSubmit={handleFormSubmit}
               />
+            </div>
+          </div>
+        ) : viewMode === 'split' ? (
+          <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+            {/* Left: Interactive Canvas & Editor */}
+            <div className="w-full lg:w-1/2 border-b lg:border-b-0 lg:border-r h-1/2 lg:h-full flex overflow-hidden">
+              <div className="hidden xl:flex h-full">
+                <PaletteSidebar />
+              </div>
+              <div className="flex-1 h-full overflow-hidden">
+                <Canvas />
+              </div>
+            </div>
+
+            {/* Right: Live Interactive Form Preview */}
+            <div className="w-full lg:w-1/2 h-1/2 lg:h-full overflow-y-auto bg-muted/20 p-4 sm:p-6 flex flex-col items-center space-y-4">
+              <div className="w-full max-w-xl">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-xs sm:text-sm font-semibold tracking-tight text-foreground flex items-center">
+                    <Eye className="h-3.5 w-3.5 mr-1.5" />
+                    Live Consumer Form Preview
+                  </h3>
+                  <Badge variant="outline" className="text-[10px] font-normal bg-background">
+                    Syncs in real-time
+                  </Badge>
+                </div>
+
+                {lastSubmission && (
+                  <div className="mb-4 p-3.5 rounded-xl border bg-card shadow-sm space-y-2 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-foreground font-semibold text-xs">
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>Form Response Captured Successfully!</span>
+                      </div>
+                      <span className="font-mono text-[11px] text-muted-foreground">
+                        ID: {lastSubmission.id}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setInspectSubDialogOpen(true)}
+                        className="h-7 text-xs"
+                      >
+                        <Inbox className="h-3 w-3 mr-1" />
+                        View in Submissions Manager
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setLastSubmission(null)}
+                        className="h-7 text-xs text-muted-foreground"
+                      >
+                        Dismiss
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <FormRenderer
+                  schema={schema}
+                  onSubmit={handleFormSubmit}
+                />
+              </div>
             </div>
           </div>
         ) : (

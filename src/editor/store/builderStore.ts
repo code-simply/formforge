@@ -39,6 +39,7 @@ export interface BuilderState {
   selectedPageId: string
   activeTab: 'palette' | 'properties'
   previewMode: boolean
+  viewMode: 'builder' | 'split' | 'preview'
   history: FormBuilderSchema[]
   future: FormBuilderSchema[]
 
@@ -47,6 +48,7 @@ export interface BuilderState {
   selectField: (fieldId: string | null) => void
   selectPage: (pageId: string) => void
   setPreviewMode: (enabled: boolean) => void
+  setViewMode: (mode: 'builder' | 'split' | 'preview') => void
   setActiveTab: (tab: 'palette' | 'properties') => void
 
   updateField: (fieldId: string, partial: Partial<FormField>) => void
@@ -112,6 +114,7 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
     selectedPageId: initialPageId,
     activeTab: 'palette',
     previewMode: false,
+    viewMode: 'builder',
     history: [],
     future: [],
 
@@ -120,6 +123,8 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
         schema,
         selectedFieldId: null,
         selectedPageId: schema.pageOrder[0] || '',
+        viewMode: 'builder',
+        previewMode: false,
         history: [],
         future: [],
       })
@@ -136,8 +141,20 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
       set({ selectedPageId: pageId, selectedFieldId: null })
     },
 
+    setViewMode: (mode) => {
+      set({
+        viewMode: mode,
+        previewMode: mode === 'preview',
+        selectedFieldId: mode === 'preview' ? null : get().selectedFieldId,
+      })
+    },
+
     setPreviewMode: (enabled) => {
-      set({ previewMode: enabled, selectedFieldId: null })
+      set({
+        previewMode: enabled,
+        viewMode: enabled ? 'preview' : 'builder',
+        selectedFieldId: null,
+      })
     },
 
     setActiveTab: (tab) => {
