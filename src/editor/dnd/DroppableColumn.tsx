@@ -4,7 +4,20 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { FormColumn, FormField } from '../../core/types'
 import { SortableFieldCard } from './SortableFieldCard'
 import { ColumnResizeHandle } from '../components/ColumnResizeHandle'
-import { Trash2, Columns2, Columns3, FoldHorizontal } from 'lucide-react'
+import { useBuilderStore } from '../store/builderStore'
+import {
+  Trash2,
+  Columns2,
+  Columns3,
+  FoldHorizontal,
+  LayoutGrid,
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  Box,
+  Square,
+  Layers,
+} from 'lucide-react'
 import { cn } from '../../ui/utils'
 
 export interface DroppableColumnProps {
@@ -50,6 +63,8 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
     },
   })
 
+  const updateColumn = useBuilderStore((s) => s.updateColumn)
+
   const span = Math.min(Math.max(column.width || 12, 1), 12)
   const colSpanClass =
     span === 1
@@ -91,10 +106,14 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
       )}
     >
       {/* Column Width & Action Bar */}
-      <div className="flex items-center justify-between text-[10px] text-muted-foreground pb-1 px-1 border-b border-border/40 opacity-75 group-hover/column:opacity-100 transition-opacity select-none">
+      <div className="flex items-center justify-between text-[10px] text-muted-foreground pb-1 px-1 border-b border-border/40 opacity-80 group-hover/column:opacity-100 transition-opacity select-none">
         <div className="flex items-center space-x-1.5 truncate">
-          <span className="font-mono font-medium text-foreground/80">
-            {isSubColumn ? 'Sub-Col' : 'Col'} {span}/12 ({Math.round((span / 12) * 100)}%)
+          <LayoutGrid className="h-3 w-3 text-foreground/70" />
+          <span className="font-mono font-semibold text-foreground/90">
+            {isSubColumn ? 'Sub-Col' : 'Col'} {span}/12
+          </span>
+          <span className="text-[9px] text-muted-foreground font-mono">
+            ({Math.round((span / 12) * 100)}%)
           </span>
           {hasSubColumns && (
             <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-muted font-mono font-semibold text-foreground/70">
@@ -104,6 +123,92 @@ export const DroppableColumn: React.FC<DroppableColumnProps> = ({
         </div>
 
         <div className="flex items-center space-x-1 shrink-0">
+          {/* Column Alignment Quick-Toggles */}
+          <div className="flex items-center space-x-0.5 border-x px-1 border-border/50">
+            <button
+              type="button"
+              onClick={() => updateColumn(column.id, { verticalAlign: 'top' })}
+              className={cn(
+                'p-0.5 rounded transition-colors',
+                column.verticalAlign === 'top'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Align Column Content: Top"
+            >
+              <AlignStartVertical className="h-2.5 w-2.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => updateColumn(column.id, { verticalAlign: 'center' })}
+              className={cn(
+                'p-0.5 rounded transition-colors',
+                column.verticalAlign === 'center'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Align Column Content: Center"
+            >
+              <AlignCenterVertical className="h-2.5 w-2.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => updateColumn(column.id, { verticalAlign: 'bottom' })}
+              className={cn(
+                'p-0.5 rounded transition-colors',
+                column.verticalAlign === 'bottom'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Align Column Content: Bottom"
+            >
+              <AlignEndVertical className="h-2.5 w-2.5" />
+            </button>
+          </div>
+
+          {/* Card Variant Style Quick-Toggles */}
+          <div className="flex items-center space-x-0.5 pr-1 border-r border-border/50">
+            <button
+              type="button"
+              onClick={() => updateColumn(column.id, { cardVariant: 'flat', padding: 'none' })}
+              className={cn(
+                'p-0.5 rounded transition-colors',
+                (!column.cardVariant || column.cardVariant === 'flat')
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Style: Flat (Borderless)"
+            >
+              <Box className="h-2.5 w-2.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => updateColumn(column.id, { cardVariant: 'bordered', padding: 'sm' })}
+              className={cn(
+                'p-0.5 rounded transition-colors',
+                column.cardVariant === 'bordered'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Style: Bordered Box"
+            >
+              <Square className="h-2.5 w-2.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => updateColumn(column.id, { cardVariant: 'card', padding: 'md' })}
+              className={cn(
+                'p-0.5 rounded transition-colors',
+                column.cardVariant === 'card'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Style: Elevated Card"
+            >
+              <Layers className="h-2.5 w-2.5" />
+            </button>
+          </div>
+
           {/* If already split, allow merging back */}
           {hasSubColumns && onUnsplitColumn && (
             <button

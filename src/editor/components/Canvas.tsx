@@ -10,10 +10,23 @@ import {
   ChevronUp,
   ChevronDown,
   Copy,
-  Sliders,
   Monitor,
   Tablet,
   Smartphone,
+  Layers,
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  AlignLeft,
+  AlignCenter,
+  ArrowLeftRight,
+  Columns2,
+  Columns3,
+  Columns4,
+  PanelLeft,
+  PanelRight,
+  SlidersHorizontal,
+  Maximize2,
 } from 'lucide-react'
 import { cn } from '../../ui/utils'
 
@@ -228,64 +241,155 @@ export const Canvas: React.FC = () => {
                 )}
 
                 {/* Floating Row Control Toolbar */}
-                <div className="absolute -top-3.5 right-2 sm:right-3 opacity-95 sm:opacity-0 group-hover/row:opacity-100 transition-opacity bg-background border rounded-md shadow-md px-1 py-0.5 flex items-center space-x-0.5 z-20">
-                  <span className="text-[9px] font-semibold text-muted-foreground px-1 uppercase tracking-wider">
-                    Row
-                  </span>
+                <div className="absolute -top-3.5 right-2 sm:right-3 opacity-95 sm:opacity-0 group-hover/row:opacity-100 transition-opacity bg-background border border-border/80 rounded-md shadow-md px-1.5 py-0.5 flex items-center space-x-1 z-20">
+                  <div className="flex items-center space-x-1 pl-0.5 pr-1 py-0.2 rounded bg-muted/70 text-foreground font-semibold text-[10px]">
+                    <Layers className="h-3 w-3 text-foreground" />
+                    <span>Row</span>
+                  </div>
+
+                  {/* Vertical Alignment Quick-Toggles */}
+                  <div className="flex items-center space-x-0.5 border-l pl-1 border-border/60">
+                    <button
+                      type="button"
+                      onClick={() => updateRow(rowId, { alignItems: 'top' })}
+                      className={cn(
+                        'p-1 rounded transition-colors',
+                        row.alignItems === 'top'
+                          ? 'bg-foreground text-background shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                      title="Align Items: Top"
+                    >
+                      <AlignStartVertical className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateRow(rowId, { alignItems: 'center' })}
+                      className={cn(
+                        'p-1 rounded transition-colors',
+                        row.alignItems === 'center'
+                          ? 'bg-foreground text-background shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                      title="Align Items: Center / Middle"
+                    >
+                      <AlignCenterVertical className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateRow(rowId, { alignItems: 'bottom' })}
+                      className={cn(
+                        'p-1 rounded transition-colors',
+                        row.alignItems === 'bottom'
+                          ? 'bg-foreground text-background shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                      title="Align Items: Bottom"
+                    >
+                      <AlignEndVertical className="h-3 w-3" />
+                    </button>
+                  </div>
+
+                  {/* Horizontal Justification Quick-Toggles */}
+                  <div className="flex items-center space-x-0.5 border-l pl-1 border-border/60">
+                    <button
+                      type="button"
+                      onClick={() => updateRow(rowId, { justifyContent: 'start' })}
+                      className={cn(
+                        'p-1 rounded transition-colors',
+                        (!row.justifyContent || row.justifyContent === 'start')
+                          ? 'bg-foreground text-background shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                      title="Justify: Start / Left"
+                    >
+                      <AlignLeft className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateRow(rowId, { justifyContent: 'center' })}
+                      className={cn(
+                        'p-1 rounded transition-colors',
+                        row.justifyContent === 'center'
+                          ? 'bg-foreground text-background shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                      title="Justify: Center"
+                    >
+                      <AlignCenter className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateRow(rowId, { justifyContent: 'between' })}
+                      className={cn(
+                        'p-1 rounded transition-colors',
+                        row.justifyContent === 'between'
+                          ? 'bg-foreground text-background shadow-2xs font-bold'
+                          : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      )}
+                      title="Justify: Space Between"
+                    >
+                      <ArrowLeftRight className="h-3 w-3" />
+                    </button>
+                  </div>
 
                   {/* Add Column Button (up to 4 cols) */}
                   {colCount < 4 && (
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="sm"
                       onClick={() => addColumnToRow(rowId)}
-                      className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                      className="h-6 px-1.5 text-[10px] text-muted-foreground hover:text-foreground border-l border-border/60 rounded-none"
                       title="Add column to this row"
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-3 w-3 mr-0.5" />
+                      <span>Col</span>
                     </Button>
                   )}
 
                   {/* Quick Layout Presets for 2 and 3 columns */}
                   {colCount === 2 && (
-                    <div className="flex items-center space-x-0.5 border-x px-1">
+                    <div className="flex items-center space-x-0.5 border-l pl-1 border-border/60">
                       <button
                         type="button"
                         onClick={() => setRowColumnWidths(rowId, [6, 6])}
                         className={cn(
-                          'text-[9px] font-mono px-1 py-0.5 rounded',
+                          'text-[9px] font-mono px-1.5 py-0.5 rounded flex items-center',
                           colWidths[0] === 6 && colWidths[1] === 6
                             ? 'bg-foreground text-background font-bold'
                             : 'text-muted-foreground hover:bg-muted'
                         )}
                         title="50% / 50%"
                       >
+                        <Columns2 className="h-3 w-3 mr-0.5" />
                         6:6
                       </button>
                       <button
                         type="button"
                         onClick={() => setRowColumnWidths(rowId, [4, 8])}
                         className={cn(
-                          'text-[9px] font-mono px-1 py-0.5 rounded',
+                          'text-[9px] font-mono px-1.5 py-0.5 rounded flex items-center',
                           colWidths[0] === 4 && colWidths[1] === 8
                             ? 'bg-foreground text-background font-bold'
                             : 'text-muted-foreground hover:bg-muted'
                         )}
                         title="33% / 67%"
                       >
+                        <PanelLeft className="h-3 w-3 mr-0.5" />
                         4:8
                       </button>
                       <button
                         type="button"
                         onClick={() => setRowColumnWidths(rowId, [8, 4])}
                         className={cn(
-                          'text-[9px] font-mono px-1 py-0.5 rounded',
+                          'text-[9px] font-mono px-1.5 py-0.5 rounded flex items-center',
                           colWidths[0] === 8 && colWidths[1] === 4
                             ? 'bg-foreground text-background font-bold'
                             : 'text-muted-foreground hover:bg-muted'
                         )}
                         title="67% / 33%"
                       >
+                        <PanelRight className="h-3 w-3 mr-0.5" />
                         8:4
                       </button>
                     </div>
@@ -299,7 +403,7 @@ export const Canvas: React.FC = () => {
                     className="h-6 w-6 text-muted-foreground hover:text-foreground"
                     title="Row Settings & Column Presets"
                   >
-                    <Sliders className="h-3 w-3" />
+                    <SlidersHorizontal className="h-3 w-3" />
                   </Button>
 
                   {/* Duplicate Row */}
@@ -426,6 +530,7 @@ export const Canvas: React.FC = () => {
               onClick={() => addRow(currentPage.id, [12])}
               className="h-7 text-xs px-2.5"
             >
+              <Maximize2 className="h-3 w-3 mr-1" />
               1 Col (Full)
             </Button>
             <Button
@@ -434,7 +539,8 @@ export const Canvas: React.FC = () => {
               onClick={() => addRow(currentPage.id, [6, 6])}
               className="h-7 text-xs px-2.5"
             >
-              2 Cols (1/2 + 1/2)
+              <Columns2 className="h-3 w-3 mr-1" />
+              2 Cols (50:50)
             </Button>
             <Button
               variant="outline"
@@ -442,7 +548,8 @@ export const Canvas: React.FC = () => {
               onClick={() => addRow(currentPage.id, [4, 4, 4])}
               className="h-7 text-xs px-2.5"
             >
-              3 Cols (1/3 each)
+              <Columns3 className="h-3 w-3 mr-1" />
+              3 Cols (33:33:33)
             </Button>
             <Button
               variant="outline"
@@ -450,7 +557,8 @@ export const Canvas: React.FC = () => {
               onClick={() => addRow(currentPage.id, [8, 4])}
               className="h-7 text-xs px-2.5"
             >
-              2 Cols (2/3 + 1/3)
+              <PanelRight className="h-3 w-3 mr-1" />
+              2 Cols (67:33)
             </Button>
             <Button
               variant="outline"
@@ -458,7 +566,8 @@ export const Canvas: React.FC = () => {
               onClick={() => addRow(currentPage.id, [3, 3, 3, 3])}
               className="h-7 text-xs px-2.5"
             >
-              4 Cols (1/4 each)
+              <Columns4 className="h-3 w-3 mr-1" />
+              4 Cols (25% each)
             </Button>
           </div>
         </div>

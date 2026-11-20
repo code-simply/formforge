@@ -19,6 +19,21 @@ import {
   LayoutTemplate,
   FormInput,
   ArrowRight,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  StretchVertical,
+  ArrowLeftRight,
+  PanelTop,
+  PanelLeft,
+  PanelRight,
+  EyeOff,
+  Maximize2,
+  Columns2,
+  Columns3,
 } from 'lucide-react'
 import { ConditionGroup, PageBranchRule, ConditionOperator } from '../../core/types'
 
@@ -592,12 +607,14 @@ export const PropertiesPanel: React.FC = () => {
                               },
                             })
                           }
-                          className={`py-1 rounded font-medium transition-colors ${
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                             field.rowLayoutConfig?.alignItems === 'top'
                               ? 'bg-background text-foreground shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
+                          title="Align to Top"
                         >
+                          <AlignStartVertical className="h-3 w-3 mr-1" />
                           Top
                         </button>
                         <button
@@ -611,12 +628,14 @@ export const PropertiesPanel: React.FC = () => {
                               },
                             })
                           }
-                          className={`py-1 rounded font-medium transition-colors ${
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                             field.rowLayoutConfig?.alignItems === 'center'
                               ? 'bg-background text-foreground shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
+                          title="Align to Middle"
                         >
+                          <AlignCenterVertical className="h-3 w-3 mr-1" />
                           Mid
                         </button>
                         <button
@@ -630,12 +649,14 @@ export const PropertiesPanel: React.FC = () => {
                               },
                             })
                           }
-                          className={`py-1 rounded font-medium transition-colors ${
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                             field.rowLayoutConfig?.alignItems === 'bottom'
                               ? 'bg-background text-foreground shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
+                          title="Align to Bottom"
                         >
+                          <AlignEndVertical className="h-3 w-3 mr-1" />
                           Bot
                         </button>
                         <button
@@ -649,13 +670,105 @@ export const PropertiesPanel: React.FC = () => {
                               },
                             })
                           }
-                          className={`py-1 rounded font-medium transition-colors ${
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                             !field.rowLayoutConfig?.alignItems || field.rowLayoutConfig?.alignItems === 'stretch'
                               ? 'bg-background text-foreground shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
+                          title="Stretch to Fit"
                         >
+                          <StretchVertical className="h-3 w-3 mr-1" />
                           Fit
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
+                      <Label className="text-xs">Horizontal Justification</Label>
+                      <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                justifyContent: 'start',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                            !field.rowLayoutConfig?.justifyContent || field.rowLayoutConfig?.justifyContent === 'start'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                          title="Justify Start"
+                        >
+                          <AlignLeft className="h-3 w-3 mr-1" />
+                          Start
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                justifyContent: 'center',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                            field.rowLayoutConfig?.justifyContent === 'center'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                          title="Justify Center"
+                        >
+                          <AlignCenter className="h-3 w-3 mr-1" />
+                          Mid
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                justifyContent: 'end',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                            field.rowLayoutConfig?.justifyContent === 'end'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                          title="Justify End"
+                        >
+                          <AlignRight className="h-3 w-3 mr-1" />
+                          End
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                justifyContent: 'between',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                            field.rowLayoutConfig?.justifyContent === 'between'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                          title="Space Between"
+                        >
+                          <ArrowLeftRight className="h-3 w-3 mr-1" />
+                          Spread
                         </button>
                       </div>
                     </div>
@@ -723,9 +836,10 @@ export const PropertiesPanel: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => setRowLayoutColumnWidths(field.id, [6, 6])}
-                            className="text-xs h-7"
+                            className="text-xs h-7 flex items-center justify-center"
                           >
-                            50% / 50%
+                            <Columns2 className="h-3 w-3 mr-1" />
+                            50:50
                           </Button>
                           <Button
                             variant="outline"
@@ -733,7 +847,7 @@ export const PropertiesPanel: React.FC = () => {
                             onClick={() => setRowLayoutColumnWidths(field.id, [4, 8])}
                             className="text-xs h-7"
                           >
-                            33% / 67%
+                            33:67
                           </Button>
                           <Button
                             variant="outline"
@@ -741,7 +855,7 @@ export const PropertiesPanel: React.FC = () => {
                             onClick={() => setRowLayoutColumnWidths(field.id, [8, 4])}
                             className="text-xs h-7"
                           >
-                            67% / 33%
+                            67:33
                           </Button>
                         </div>
                       )}
@@ -752,9 +866,10 @@ export const PropertiesPanel: React.FC = () => {
                             variant="outline"
                             size="sm"
                             onClick={() => setRowLayoutColumnWidths(field.id, [4, 4, 4])}
-                            className="text-xs h-7"
+                            className="text-xs h-7 flex items-center justify-center"
                           >
-                            Equal (1/3)
+                            <Columns3 className="h-3 w-3 mr-1" />
+                            1/3 ea
                           </Button>
                           <Button
                             variant="outline"
@@ -825,42 +940,58 @@ export const PropertiesPanel: React.FC = () => {
                         {/* Label Placement & Responsive Alignment */}
                         <div className="space-y-1.5 pt-1">
                           <Label className="text-xs">Label Position</Label>
-                          <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                          <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
                             <button
                               type="button"
                               onClick={() => updateField(field.id, { labelPosition: 'top' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 !field.labelPosition || field.labelPosition === 'top'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
                               title="Top of input (Default)"
                             >
+                              <PanelTop className="h-3 w-3 mr-1" />
                               Top
                             </button>
                             <button
                               type="button"
                               onClick={() => updateField(field.id, { labelPosition: 'left' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 field.labelPosition === 'left'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
                               title="Left side (auto-collapses on mobile)"
                             >
+                              <PanelLeft className="h-3 w-3 mr-1" />
                               Left
                             </button>
                             <button
                               type="button"
+                              onClick={() => updateField(field.id, { labelPosition: 'right' })}
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                                field.labelPosition === 'right'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                              title="Right side"
+                            >
+                              <PanelRight className="h-3 w-3 mr-1" />
+                              Right
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => updateField(field.id, { labelPosition: 'hidden' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 field.labelPosition === 'hidden'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
                               title="Hidden visually"
                             >
-                              Hidden
+                              <EyeOff className="h-3 w-3 mr-1" />
+                              Hide
                             </button>
                           </div>
                         </div>
@@ -872,47 +1003,84 @@ export const PropertiesPanel: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => updateField(field.id, { elementAlign: 'left' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 !field.elementAlign || field.elementAlign === 'left'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
+                              title="Align Left"
                             >
+                              <AlignLeft className="h-3 w-3 mr-1" />
                               Left
                             </button>
                             <button
                               type="button"
                               onClick={() => updateField(field.id, { elementAlign: 'center' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 field.elementAlign === 'center'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
+                              title="Align Center"
                             >
-                              Center
+                              <AlignCenter className="h-3 w-3 mr-1" />
+                              Mid
                             </button>
                             <button
                               type="button"
                               onClick={() => updateField(field.id, { elementAlign: 'right' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 field.elementAlign === 'right'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
+                              title="Align Right"
                             >
+                              <AlignRight className="h-3 w-3 mr-1" />
                               Right
                             </button>
                             <button
                               type="button"
                               onClick={() => updateField(field.id, { elementAlign: 'full' })}
-                              className={`py-1 rounded font-medium transition-colors ${
+                              className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                                 field.elementAlign === 'full'
                                   ? 'bg-background text-foreground shadow-xs'
                                   : 'text-muted-foreground hover:text-foreground'
                               }`}
+                              title="Stretch Full"
                             >
+                              <Maximize2 className="h-3 w-3 mr-1" />
                               Full
                             </button>
+                          </div>
+                        </div>
+
+                        {/* Width Preset */}
+                        <div className="space-y-1.5 pt-1">
+                          <Label className="text-xs">Field Width Preset</Label>
+                          <div className="grid grid-cols-5 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                            {(
+                              [
+                                { id: 'auto', label: 'Auto' },
+                                { id: '1/4', label: '25%' },
+                                { id: '1/2', label: '50%' },
+                                { id: '3/4', label: '75%' },
+                                { id: 'full', label: '100%' },
+                              ] as const
+                            ).map((preset) => (
+                              <button
+                                key={preset.id}
+                                type="button"
+                                onClick={() => updateField(field.id, { widthPreset: preset.id })}
+                                className={`py-1 rounded font-medium transition-colors ${
+                                  (field.widthPreset || 'full') === preset.id
+                                    ? 'bg-background text-foreground shadow-xs'
+                                    : 'text-muted-foreground hover:text-foreground'
+                                }`}
+                              >
+                                {preset.label}
+                              </button>
+                            ))}
                           </div>
                         </div>
 

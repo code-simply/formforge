@@ -7,7 +7,18 @@ import { DroppableColumn } from './DroppableColumn'
 import { Button } from '../../ui/button'
 import { Badge } from '../../ui/badge'
 import { FIELD_REGISTRY } from '../registry'
-import { GripVertical, Copy, Trash2, Layers, Plus, Sliders } from 'lucide-react'
+import {
+  GripVertical,
+  Copy,
+  Trash2,
+  Layers,
+  Plus,
+  Sliders,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  GitBranch,
+} from 'lucide-react'
 import { cn } from '../../ui/utils'
 
 export interface SortableFieldCardProps {
@@ -33,6 +44,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     selectField,
     removeField,
     duplicateField,
+    updateField,
     setRowLayoutColumnWidths,
     addRowLayoutColumn,
     removeRowLayoutColumn,
@@ -386,7 +398,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     >
       {/* Field Header */}
       <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center space-x-1.5 sm:space-x-2 overflow-hidden">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 overflow-hidden flex-1">
           {/* Drag Handle */}
           <div
             {...attributes}
@@ -398,22 +410,84 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             <GripVertical className="h-3.5 w-3.5" />
           </div>
 
-          <Icon className="h-3.5 w-3.5 text-foreground shrink-0" />
+          <div className="h-6 w-6 rounded bg-muted/80 border border-border/80 flex items-center justify-center text-foreground shrink-0 shadow-2xs">
+            <Icon className="h-3 w-3" />
+          </div>
+
           <span className="text-xs font-semibold text-foreground truncate">
             {field.label}
           </span>
+
+          <span className="text-[9px] uppercase font-mono px-1 py-0.2 rounded bg-muted/70 text-muted-foreground font-semibold shrink-0">
+            {field.type}
+          </span>
+
           {field.required && (
-            <span className="text-foreground/70 font-bold text-xs shrink-0">*</span>
+            <span className="text-foreground/80 font-bold text-xs shrink-0" title="Required field">*</span>
           )}
+
           {field.conditions && field.conditions.length > 0 && (
-            <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0 font-normal">
-              Rule
+            <Badge variant="outline" className="text-[9px] h-4 px-1 shrink-0 font-normal flex items-center gap-0.5">
+              <GitBranch className="h-2.5 w-2.5" />
+              <span>Rule</span>
             </Badge>
           )}
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions & Positioning */}
         <div className="opacity-80 sm:opacity-0 group-hover/field:opacity-100 flex items-center space-x-0.5 transition-opacity shrink-0">
+          {/* Quick Field Alignment Toggles */}
+          <div className="flex items-center space-x-0.5 border-r pr-1 mr-0.5 border-border/50">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                updateField(field.id, { textAlign: 'left', elementAlign: 'left' })
+              }}
+              className={cn(
+                'p-1 rounded transition-colors',
+                (!field.textAlign || field.textAlign === 'left')
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Align Left"
+            >
+              <AlignLeft className="h-2.5 w-2.5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                updateField(field.id, { textAlign: 'center', elementAlign: 'center' })
+              }}
+              className={cn(
+                'p-1 rounded transition-colors',
+                field.textAlign === 'center'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Align Center"
+            >
+              <AlignCenter className="h-2.5 w-2.5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                updateField(field.id, { textAlign: 'right', elementAlign: 'right' })
+              }}
+              className={cn(
+                'p-1 rounded transition-colors',
+                field.textAlign === 'right'
+                  ? 'bg-foreground text-background shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+              )}
+              title="Align Right"
+            >
+              <AlignRight className="h-2.5 w-2.5" />
+            </button>
+          </div>
+
           <Button
             variant="ghost"
             size="icon"

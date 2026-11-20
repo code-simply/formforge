@@ -910,9 +910,27 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
   }
 
   // Responsive Left Label Layout (stacks vertically on mobile, side-by-side on sm: screens >=640px)
+  const widthClass =
+    field.widthPreset === '1/4'
+      ? 'w-full sm:w-1/4'
+      : field.widthPreset === '1/2'
+      ? 'w-full sm:w-1/2'
+      : field.widthPreset === '3/4'
+      ? 'w-full sm:w-3/4'
+      : field.widthPreset === 'auto'
+      ? 'w-auto'
+      : 'w-full'
+
+  const elementAlignClass =
+    field.elementAlign === 'center'
+      ? 'mx-auto'
+      : field.elementAlign === 'right'
+      ? 'ml-auto'
+      : ''
+
   if (field.labelPosition === 'left') {
     return (
-      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-4 py-1.5">
+      <div className={cn('flex flex-col sm:flex-row sm:items-start sm:gap-4 py-1.5', widthClass, elementAlignClass)}>
         <div className="sm:w-1/3 sm:pt-2 sm:text-right shrink-0">
           <Label className={cn('text-sm font-medium', error && 'text-destructive')}>
             {field.label}
@@ -933,8 +951,31 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
     )
   }
 
+  if (field.labelPosition === 'right') {
+    return (
+      <div className={cn('flex flex-col sm:flex-row-reverse sm:items-start sm:gap-4 py-1.5', widthClass, elementAlignClass)}>
+        <div className="sm:w-1/3 sm:pt-2 sm:text-left shrink-0">
+          <Label className={cn('text-sm font-medium', error && 'text-destructive')}>
+            {field.label}
+            {required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          {field.helpText && (
+            <span className="block text-[11px] text-muted-foreground">{field.helpText}</span>
+          )}
+        </div>
+        <div className="flex-1 space-y-1">
+          {renderControl()}
+          {field.description && (
+            <p className="text-xs text-muted-foreground">{field.description}</p>
+          )}
+          {error && <p className="text-xs font-medium text-destructive">{error}</p>}
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="space-y-1.5 py-1">
+    <div className={cn('space-y-1.5 py-1', widthClass, elementAlignClass)}>
       {field.labelPosition !== 'hidden' && (
         <div className="flex items-center justify-between">
           <Label className={cn('text-sm font-medium', error && 'text-destructive')}>

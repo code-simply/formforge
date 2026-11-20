@@ -126,6 +126,7 @@ export interface RowLayoutConfig {
   columnIds: string[]
   gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
   alignItems?: 'top' | 'center' | 'bottom' | 'stretch'
+  justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around'
   title?: string
   legend?: string
   fieldset?: boolean
@@ -158,6 +159,7 @@ export interface FormField {
   labelPosition?: 'top' | 'left' | 'right' | 'hidden'
   textAlign?: 'left' | 'center' | 'right'
   elementAlign?: 'left' | 'center' | 'right' | 'full'
+  widthPreset?: 'auto' | '1/4' | '1/2' | '3/4' | 'full'
   options?: SelectOption[]
   validationRules?: ValidationRule[]
   conditions?: ConditionGroup[]
@@ -174,7 +176,7 @@ export interface FormColumn {
   id: string
   width: number // 1 to 12 in a 12-column grid
   verticalAlign?: 'top' | 'center' | 'bottom' | 'stretch'
-  horizontalAlign?: 'left' | 'center' | 'right'
+  horizontalAlign?: 'left' | 'center' | 'right' | 'stretch'
   cardVariant?: 'flat' | 'bordered' | 'card'
   padding?: 'none' | 'sm' | 'md' | 'lg'
   fieldIds: string[]
@@ -186,6 +188,7 @@ export interface FormRow {
   id: string
   columnIds: string[]
   alignItems?: 'top' | 'center' | 'bottom' | 'stretch'
+  justifyContent?: 'start' | 'center' | 'end' | 'between' | 'around'
   gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
   title?: string // Legend / Title for fieldset row
   fieldset?: boolean // Wrap row in a fieldset border

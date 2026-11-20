@@ -43,8 +43,19 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
       ? 'items-end'
       : 'items-stretch'
 
+  const justifyClass =
+    row.justifyContent === 'center'
+      ? 'justify-center'
+      : row.justifyContent === 'end'
+      ? 'justify-end'
+      : row.justifyContent === 'between'
+      ? 'justify-between'
+      : row.justifyContent === 'around'
+      ? 'justify-around'
+      : 'justify-start'
+
   const grid = (
-    <div className={cn('grid grid-cols-12', gapClass, alignClass, !row.fieldset && 'py-2', row.className)}>
+    <div className={cn('grid grid-cols-12', gapClass, alignClass, justifyClass, !row.fieldset && 'py-2', row.className)}>
       {row.columnIds.map((colId) => {
         const column = columns[colId]
         if (!column) return null

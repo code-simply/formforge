@@ -6,6 +6,7 @@ import {
   FormPage,
   FormSettings,
   FormSubmissionRecord,
+  FormColumn,
 } from '../../core/types'
 import {
   FormRow,
@@ -67,6 +68,7 @@ export interface BuilderState {
   setRowColumnWidths: (rowId: string, widths: number[]) => void
   addColumnToRow: (rowId: string) => void
   removeColumnFromRow: (rowId: string, columnId: string) => void
+  updateColumn: (columnId: string, partial: Partial<FormColumn>) => void
   splitColumn: (columnId: string, count?: number) => void
   unsplitColumn: (columnId: string) => void
   setSubColumnWidths: (parentColId: string, widths: number[]) => void
@@ -321,6 +323,28 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
     removeColumnFromRow: (rowId, columnId) => {
       const { schema } = get()
       const nextSchema = removeColumnFromRow(schema, rowId, columnId)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    updateColumn: (columnId, partial) => {
+      const { schema } = get()
+      const col = schema.columns[columnId]
+      if (!col) return
+
+      const nextSchema: FormBuilderSchema = {
+        ...schema,
+        columns: {
+          ...schema.columns,
+          [columnId]: {
+            ...col,
+            ...partial,
+          },
+        },
+      }
+
       set({
         schema: nextSchema,
         ...pushHistory(schema),

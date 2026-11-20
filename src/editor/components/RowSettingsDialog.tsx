@@ -12,7 +12,20 @@ import { Input } from '../../ui/input'
 import { Label } from '../../ui/label'
 import { Switch } from '../../ui/switch'
 import { FormRow } from '../../core/types'
-import { Sliders, Columns, Plus, Trash2 } from 'lucide-react'
+import {
+  SlidersHorizontal,
+  Columns,
+  Plus,
+  Trash2,
+  AlignStartVertical,
+  AlignCenterVertical,
+  AlignEndVertical,
+  StretchVertical,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  ArrowLeftRight,
+} from 'lucide-react'
 
 export interface RowSettingsDialogProps {
   isOpen: boolean
@@ -39,6 +52,7 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
   const [fieldset, setFieldset] = useState(false)
   const [className, setClassName] = useState('')
   const [alignItems, setAlignItems] = useState<'top' | 'center' | 'bottom' | 'stretch'>('stretch')
+  const [justifyContent, setJustifyContent] = useState<'start' | 'center' | 'end' | 'between' | 'around'>('start')
   const [gap, setGap] = useState<'none' | 'sm' | 'md' | 'lg' | 'xl'>('md')
 
   useEffect(() => {
@@ -47,6 +61,7 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
       setFieldset(!!row.fieldset)
       setClassName(row.className || '')
       setAlignItems(row.alignItems || 'stretch')
+      setJustifyContent(row.justifyContent || 'start')
       setGap(row.gap || 'md')
     }
   }, [row, isOpen])
@@ -59,6 +74,7 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
       fieldset,
       className: className.trim() || undefined,
       alignItems,
+      justifyContent,
       gap,
     })
     onClose()
@@ -91,7 +107,7 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <div className="flex items-center space-x-2">
-            <Sliders className="h-4 w-4 text-foreground" />
+            <SlidersHorizontal className="h-4 w-4 text-foreground" />
             <DialogTitle>Row & Column Settings</DialogTitle>
           </div>
           <DialogDescription>
@@ -125,7 +141,7 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
             </p>
           </div>
 
-          {/* Vertical Alignment & Gap Spacing */}
+          {/* Vertical Alignment & Horizontal Justification */}
           <div className="grid grid-cols-2 gap-3 pt-2 border-t">
             <div className="space-y-1.5">
               <Label className="text-xs font-medium">Vertical Alignment</Label>
@@ -133,106 +149,181 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
                 <button
                   type="button"
                   onClick={() => setAlignItems('top')}
-                  className={`py-1 rounded font-medium transition-colors ${
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                     alignItems === 'top'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Align to Top"
                 >
+                  <AlignStartVertical className="h-3 w-3 mr-0.5" />
                   Top
                 </button>
                 <button
                   type="button"
                   onClick={() => setAlignItems('center')}
-                  className={`py-1 rounded font-medium transition-colors ${
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                     alignItems === 'center'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Align to Middle"
                 >
+                  <AlignCenterVertical className="h-3 w-3 mr-0.5" />
                   Mid
                 </button>
                 <button
                   type="button"
                   onClick={() => setAlignItems('bottom')}
-                  className={`py-1 rounded font-medium transition-colors ${
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                     alignItems === 'bottom'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Align to Bottom"
                 >
+                  <AlignEndVertical className="h-3 w-3 mr-0.5" />
                   Bot
                 </button>
                 <button
                   type="button"
                   onClick={() => setAlignItems('stretch')}
-                  className={`py-1 rounded font-medium transition-colors ${
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
                     alignItems === 'stretch'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Stretch Height"
                 >
+                  <StretchVertical className="h-3 w-3 mr-0.5" />
                   Fit
                 </button>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium">Column Gap</Label>
+              <Label className="text-xs font-medium">Horizontal Justify</Label>
               <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
                 <button
                   type="button"
-                  onClick={() => setGap('none')}
-                  className={`py-1 rounded font-medium transition-colors ${
-                    gap === 'none'
+                  onClick={() => setJustifyContent('start')}
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                    justifyContent === 'start'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
-                  title="No Gap (0px)"
+                  title="Justify Start"
                 >
-                  None
+                  <AlignLeft className="h-3 w-3 mr-0.5" />
+                  Start
                 </button>
                 <button
                   type="button"
-                  onClick={() => setGap('sm')}
-                  className={`py-1 rounded font-medium transition-colors ${
-                    gap === 'sm'
+                  onClick={() => setJustifyContent('center')}
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                    justifyContent === 'center'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
-                  title="Small Gap (8px)"
+                  title="Justify Center"
                 >
-                  Sm
+                  <AlignCenter className="h-3 w-3 mr-0.5" />
+                  Mid
                 </button>
                 <button
                   type="button"
-                  onClick={() => setGap('md')}
-                  className={`py-1 rounded font-medium transition-colors ${
-                    gap === 'md'
+                  onClick={() => setJustifyContent('end')}
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                    justifyContent === 'end'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
-                  title="Medium Gap (16px)"
+                  title="Justify End"
                 >
-                  Md
+                  <AlignRight className="h-3 w-3 mr-0.5" />
+                  End
                 </button>
                 <button
                   type="button"
-                  onClick={() => setGap('lg')}
-                  className={`py-1 rounded font-medium transition-colors ${
-                    gap === 'lg'
+                  onClick={() => setJustifyContent('between')}
+                  className={`py-1 rounded flex items-center justify-center font-medium transition-colors ${
+                    justifyContent === 'between'
                       ? 'bg-background text-foreground shadow-xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
-                  title="Large Gap (24px)"
+                  title="Space Between"
                 >
-                  Lg
+                  <ArrowLeftRight className="h-3 w-3 mr-0.5" />
+                  Spread
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* Gap Spacing */}
+          <div className="space-y-1.5 pt-1">
+            <Label className="text-xs font-medium">Column Gap</Label>
+            <div className="grid grid-cols-5 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+              <button
+                type="button"
+                onClick={() => setGap('none')}
+                className={`py-1 rounded font-medium transition-colors ${
+                  gap === 'none'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="No Gap (0px)"
+              >
+                None
+              </button>
+              <button
+                type="button"
+                onClick={() => setGap('sm')}
+                className={`py-1 rounded font-medium transition-colors ${
+                  gap === 'sm'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Small Gap (8px)"
+              >
+                Sm
+              </button>
+              <button
+                type="button"
+                onClick={() => setGap('md')}
+                className={`py-1 rounded font-medium transition-colors ${
+                  gap === 'md'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Medium Gap (16px)"
+              >
+                Md
+              </button>
+              <button
+                type="button"
+                onClick={() => setGap('lg')}
+                className={`py-1 rounded font-medium transition-colors ${
+                  gap === 'lg'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Large Gap (24px)"
+              >
+                Lg
+              </button>
+              <button
+                type="button"
+                onClick={() => setGap('xl')}
+                className={`py-1 rounded font-medium transition-colors ${
+                  gap === 'xl'
+                    ? 'bg-background text-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Extra Large Gap (32px)"
+              >
+                Xl
+              </button>
             </div>
           </div>
 
