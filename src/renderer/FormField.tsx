@@ -779,3 +779,5 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
     </div>
   )
 }
+
+export default FormFieldRenderer
