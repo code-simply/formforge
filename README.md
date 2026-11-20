@@ -1,40 +1,45 @@
-# shadcn-form-builder
+# FormForge 🔨
 
-A modern, 100% TypeScript drag-and-drop form builder and form renderer built on **shadcn/ui**, **Tailwind CSS**, **React Hook Form**, and **Zod**. Recreated from the core concepts and features of Formeo with modern reactive architecture.
+> **`@parhtiban/formforge`** — Modern, 100% TypeScript drag-and-drop form builder, multi-step wizard, and runtime renderer built on **shadcn/ui**, **Tailwind CSS**, **React Hook Form**, and **Zod**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![React](https://img.shields.io/badge/React-18%20%7C%2019-blue)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%20v4-blue)](https://tailwindcss.com/)
 
 ---
 
 ## ✨ Features
 
-- 🎯 **Visual Drag-and-Drop Form Builder**: Intuitive visual editor with live canvas, element palette, and property inspector.
+- 🎯 **Visual Drag-and-Drop Form Builder**: Clean, single-header studio navbar with live canvas, drag-and-drop element palette, and property inspector.
 - 🚀 **Zero-Baggage Form Renderer**: Separate, lightweight runtime component `<FormRenderer />` that renders schemas with zero builder overhead.
-- 📐 **4-Tier Responsive Layout**:
-  $$\text{Pages (Multi-Step)} \longrightarrow \text{Rows} \longrightarrow \text{Columns (1-12 Grid)} \longrightarrow \text{Fields}$$
-- 🎨 **Shadcn UI & Tailwind CSS**: Built natively on Radix UI primitives and styled with Tailwind design tokens. Full dark mode support out of the box.
-- ⚡ **Dynamic Conditional Logic**: Show/hide, enable/disable, or require fields dynamically based on user input with AND/OR rule groups.
-- 🔒 **Native Zod Validation**: Generates dynamic Zod validation schemas for active, visible form fields at runtime.
-- 📦 **Multi-Format Modern Distribution**: Clean subpath exports for `shadcn-form-builder`, `shadcn-form-builder/renderer`, and `shadcn-form-builder/core` with full TypeScript declaration types.
-- ⏪ **Undo / Redo & History**: Built-in state history stack for quick undo and redo actions.
-- 📄 **Multi-Page & Multi-Step Forms**: Multi-step wizard navigation with progress bars, step validation, and previous/next navigation.
-- 🔄 **Portable JSON Schema**: Import and export standard, normalized JSON definitions.
+- 📐 **Responsive 4-Tier Layout Grid**:
+  $$\text{Multi-Step Pages} \longrightarrow \text{Rows} \longrightarrow \text{Columns (1-12)} \longrightarrow \text{Fields}$$
+  Supports custom widths (`50:50`, `33:33:33`, `25:75`, etc.), sub-columns, and native CSS container queries (`@container`).
+- 🎨 **Shadcn UI & Zinc Aesthetic**: Built natively on Radix UI primitives and styled with Tailwind design tokens. Complete dark & light mode support out of the box.
+- 🔀 **Conditional Logic & Step Branching**:
+  - Show/hide, enable/disable, or require fields dynamically based on user inputs.
+  - Multi-step wizard branching: route users dynamically to different pages based on their answers.
+- 🔒 **Dynamic Zod Validation**: Generates type-safe Zod validation schemas for active, visible form fields at runtime.
+- ⚡ **Webhook Pipeline & Payload Remapping**: Live test webhook dispatcher, latency analyzer, cURL snippet generator, and key-remapping engine.
+- 📊 **Submissions Manager**: In-app submission records viewer, search, and one-click export to CSV & JSON.
+- 📦 **Subpath Exports**: Clean modular exports for `@parhtiban/formforge`, `@parhtiban/formforge/renderer`, and `@parhtiban/formforge/core`.
+- ⏪ **Undo / Redo History**: Full state history stack with keyboard shortcuts (`Ctrl+Z` / `Ctrl+Y`).
+- 🔄 **Portable JSON Schema**: Import, export, and embed schemas anywhere.
 
 ---
 
 ## 📦 Installation
 
 ```bash
-npm install shadcn-form-builder zod react-hook-form
+npm install @parhtiban/formforge zod react-hook-form
 # or with pnpm
-pnpm add shadcn-form-builder zod react-hook-form
+pnpm add @parhtiban/formforge zod react-hook-form
 # or with yarn
-yarn add shadcn-form-builder zod react-hook-form
+yarn add @parhtiban/formforge zod react-hook-form
 ```
 
-Ensure Tailwind CSS and CSS variables are set up in your application (standard shadcn/ui configuration).
+Ensure Tailwind CSS is configured in your project (standard shadcn/ui setup).
 
 ---
 
@@ -42,13 +47,13 @@ Ensure Tailwind CSS and CSS variables are set up in your application (standard s
 
 ### 1. Visual Form Builder (`<FormBuilder />`)
 
-Embed the visual builder into your application or admin panel:
+Embed the full visual studio directly into your application or admin panel:
 
 ```tsx
 import React, { useState } from 'react'
-import { FormBuilder } from 'shadcn-form-builder'
-import { FormBuilderSchema } from 'shadcn-form-builder/core'
-import 'shadcn-form-builder/style.css'
+import { FormBuilder } from '@parhtiban/formforge'
+import { FormBuilderSchema } from '@parhtiban/formforge/core'
+import '@parhtiban/formforge/style.css'
 
 export function FormBuilderPage() {
   const [schema, setSchema] = useState<FormBuilderSchema>()
@@ -68,15 +73,15 @@ export function FormBuilderPage() {
 
 ### 2. Runtime Form Renderer (`<FormRenderer />`)
 
-Render saved form schemas for end-users without loading the builder interface:
+Render saved schemas for consumers without loading the builder bundle:
 
 ```tsx
 import React from 'react'
-import { FormRenderer } from 'shadcn-form-builder/renderer'
-import { FormBuilderSchema } from 'shadcn-form-builder/core'
-import 'shadcn-form-builder/style.css'
+import { FormRenderer } from '@parhtiban/formforge/renderer'
+import { FormBuilderSchema } from '@parhtiban/formforge/core'
+import '@parhtiban/formforge/style.css'
 
-export function UserForm({ schema }: { schema: FormBuilderSchema }) {
+export function ConsumerForm({ schema }: { schema: FormBuilderSchema }) {
   const handleSubmit = (values: Record<string, unknown>) => {
     console.log('Submitted Form Values:', values)
   }
@@ -94,39 +99,37 @@ export function UserForm({ schema }: { schema: FormBuilderSchema }) {
 
 ---
 
-## 🏗️ Architecture & Subpath Exports
+## 🏗️ Subpath Exports
 
 | Export Path | Content & Purpose |
 | :--- | :--- |
-| `shadcn-form-builder` | Main package containing the full visual builder, renderer, and core engine. |
-| `shadcn-form-builder/renderer` | Lightweight runtime renderer (`<FormRenderer />`, `<FormFieldRenderer />`, `useFormEngine`). |
-| `shadcn-form-builder/core` | Pure TypeScript schemas, types, condition evaluation engine, and normalization utilities. |
-| `shadcn-form-builder/editor` | Visual editor components (`Canvas`, `PaletteSidebar`, `PropertiesPanel`, `useBuilderStore`). |
+| `@parhtiban/formforge` | Main entry point containing `<FormBuilder />`, `<HeaderBar />`, and studio shell. |
+| `@parhtiban/formforge/renderer` | Lightweight runtime renderer (`<FormRenderer />`, `<FormFieldRenderer />`, `useFormEngine`). |
+| `@parhtiban/formforge/core` | Pure TypeScript schemas, types, Zod generators, webhook remapping, and normalization. |
+| `@parhtiban/formforge/editor` | Visual editor components (`Canvas`, `PaletteSidebar`, `PropertiesPanel`, `useBuilderStore`). |
+| `@parhtiban/formforge/style.css` | Compiled standalone CSS stylesheets. |
 
 ---
 
-## 🧩 Supported Form Controls
+## 🛠️ Development & Contributing
 
-- **Standard Inputs**: Text, Email, Password, Number, Phone, URL, Textarea
-- **Choices**: Select Dropdown, Radio Group, Checkbox, Switch, Range Slider
-- **Advanced Controls**: Date Picker, Time Picker, Table Matrix, Repeatable Rows
-- **Layout & Static**: Section Headings, Paragraphs, Dividers, Action Buttons
-
----
-
-## 🛠️ Development & Testing
+Contributions are warmly welcomed! Anyone can clone the repository, run the development environment, and contribute:
 
 ```bash
-# Start local development playground
+# Clone the repository
+git clone https://github.com/parhtiban/formforge.git
+cd formforge
+
+# Install dependencies
+npm install
+
+# Start local interactive studio
 npm run dev
 
-# Run unit tests
+# Run test suite (59 unit tests)
 npm test
 
-# Run TypeScript typechecks
-npm run lint
-
-# Build library distribution
+# Build production library distribution
 npm run build
 ```
 
@@ -134,4 +137,4 @@ npm run build
 
 ## 📄 License
 
-MIT © Draggable
+MIT © [Parthiban](https://github.com/parhtiban)

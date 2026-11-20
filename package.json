@@ -1,11 +1,19 @@
 {
-  "name": "shadcn-form-builder",
+  "name": "@parhtiban/formforge",
   "version": "1.0.0",
-  "description": "Modern TypeScript drag-and-drop form builder and renderer built on shadcn/ui, Tailwind CSS, React Hook Form, and Zod",
+  "description": "FormForge: Modern TypeScript drag-and-drop form builder & renderer built on shadcn/ui, Tailwind CSS, React Hook Form, and Zod",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/parhtiban/formforge.git"
+  },
+  "homepage": "https://github.com/parhtiban/formforge#readme",
+  "bugs": {
+    "url": "https://github.com/parhtiban/formforge/issues"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -33,6 +41,7 @@
     "dist"
   ],
   "keywords": [
+    "formforge",
     "form-builder",
     "form-renderer",
     "shadcn",
@@ -43,7 +52,7 @@
     "tailwind",
     "typescript"
   ],
-  "author": "Draggable",
+  "author": "Parthiban",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
