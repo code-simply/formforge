@@ -1,6 +1,6 @@
 # FormForge 🔨
 
-> **`formforge`** — Modern, 100% TypeScript drag-and-drop form builder, multi-step wizard, and runtime renderer built on **shadcn/ui**, **Tailwind CSS**, **React Hook Form**, and **Zod**.
+> **`@parhtiban/formforge`** — Modern, 100% TypeScript drag-and-drop form builder, multi-step wizard, and runtime renderer built on **shadcn/ui**, **Tailwind CSS**, **React Hook Form**, and **Zod**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
@@ -23,7 +23,7 @@
 - 🔒 **Dynamic Zod Validation**: Generates type-safe Zod validation schemas for active, visible form fields at runtime.
 - ⚡ **Webhook Pipeline & Payload Remapping**: Live test webhook dispatcher, latency analyzer, cURL snippet generator, and key-remapping engine.
 - 📊 **Submissions Manager**: In-app submission records viewer, search, and one-click export to CSV & JSON.
-- 📦 **Subpath Exports**: Clean modular exports for `formforge`, `formforge/renderer`, and `formforge/core`.
+- 📦 **Subpath Exports**: Clean modular exports for `@parhtiban/formforge`, `@parhtiban/formforge/renderer`, and `@parhtiban/formforge/core`.
 - ⏪ **Undo / Redo History**: Full state history stack with keyboard shortcuts (`Ctrl+Z` / `Ctrl+Y`).
 - 🔄 **Portable JSON Schema**: Import, export, and embed schemas anywhere.
 
@@ -32,11 +32,11 @@
 ## 📦 Installation
 
 ```bash
-npm install formforge zod react-hook-form
+npm install @parhtiban/formforge zod react-hook-form
 # or with pnpm
-pnpm add formforge zod react-hook-form
+pnpm add @parhtiban/formforge zod react-hook-form
 # or with yarn
-yarn add formforge zod react-hook-form
+yarn add @parhtiban/formforge zod react-hook-form
 ```
 
 Ensure Tailwind CSS is configured in your project (standard shadcn/ui setup).
@@ -51,9 +51,9 @@ Embed the full visual studio directly into your application or admin panel:
 
 ```tsx
 import React, { useState } from 'react'
-import { FormBuilder } from 'formforge'
-import { FormBuilderSchema } from 'formforge/core'
-import 'formforge/style.css'
+import { FormBuilder } from '@parhtiban/formforge'
+import { FormBuilderSchema } from '@parhtiban/formforge/core'
+import '@parhtiban/formforge/style.css'
 
 export function FormBuilderPage() {
   const [schema, setSchema] = useState<FormBuilderSchema>()
@@ -77,9 +77,9 @@ Render saved schemas for consumers without loading the builder bundle:
 
 ```tsx
 import React from 'react'
-import { FormRenderer } from 'formforge/renderer'
-import { FormBuilderSchema } from 'formforge/core'
-import 'formforge/style.css'
+import { FormRenderer } from '@parhtiban/formforge/renderer'
+import { FormBuilderSchema } from '@parhtiban/formforge/core'
+import '@parhtiban/formforge/style.css'
 
 export function ConsumerForm({ schema }: { schema: FormBuilderSchema }) {
   const handleSubmit = (values: Record<string, unknown>) => {
@@ -103,11 +103,11 @@ export function ConsumerForm({ schema }: { schema: FormBuilderSchema }) {
 
 | Export Path | Content & Purpose |
 | :--- | :--- |
-| `formforge` | Main entry point containing `<FormBuilder />`, `<HeaderBar />`, and studio shell. |
-| `formforge/renderer` | Lightweight runtime renderer (`<FormRenderer />`, `<FormFieldRenderer />`, `useFormEngine`). |
-| `formforge/core` | Pure TypeScript schemas, types, Zod generators, webhook remapping, and normalization. |
-| `formforge/editor` | Visual editor components (`Canvas`, `PaletteSidebar`, `PropertiesPanel`, `useBuilderStore`). |
-| `formforge/style.css` | Compiled standalone CSS stylesheets. |
+| `@parhtiban/formforge` | Main entry point containing `<FormBuilder />`, `<HeaderBar />`, and studio shell. |
+| `@parhtiban/formforge/renderer` | Lightweight runtime renderer (`<FormRenderer />`, `<FormFieldRenderer />`, `useFormEngine`). |
+| `@parhtiban/formforge/core` | Pure TypeScript schemas, types, Zod generators, webhook remapping, and normalization. |
+| `@parhtiban/formforge/editor` | Visual editor components (`Canvas`, `PaletteSidebar`, `PropertiesPanel`, `useBuilderStore`). |
+| `@parhtiban/formforge/style.css` | Compiled standalone CSS stylesheets. |
 
 ---
 
