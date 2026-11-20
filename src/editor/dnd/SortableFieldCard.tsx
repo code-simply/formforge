@@ -2,10 +2,12 @@ import React from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { FormField } from '../../core/types'
+import { useBuilderStore } from '../store/builderStore'
+import { DroppableColumn } from './DroppableColumn'
 import { Button } from '../../ui/button'
 import { Badge } from '../../ui/badge'
 import { FIELD_REGISTRY } from '../registry'
-import { GripVertical, Copy, Trash2, Layers } from 'lucide-react'
+import { GripVertical, Copy, Trash2, Layers, Plus, Sliders } from 'lucide-react'
 import { cn } from '../../ui/utils'
 
 export interface SortableFieldCardProps {
@@ -26,6 +28,20 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   onRemove,
 }) => {
   const {
+    schema,
+    selectedFieldId,
+    selectField,
+    removeField,
+    duplicateField,
+    setRowLayoutColumnWidths,
+    addRowLayoutColumn,
+    removeRowLayoutColumn,
+    splitColumn,
+    unsplitColumn,
+    setSubColumnWidths,
+  } = useBuilderStore()
+
+  const {
     attributes,
     listeners,
     setNodeRef,
@@ -44,6 +60,285 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
     transition,
+  }
+
+  // If this field is a nested Row Layout component
+  if (field.type === 'row-layout') {
+    const childColIds = field.rowLayoutConfig?.columnIds || []
+    const colCount = childColIds.length
+    const colWidths = childColIds.map((cId) => schema.columns[cId]?.width || 6)
+
+    return (
+      <div
+        ref={setNodeRef}
+        style={style}
+        onClick={(e) => {
+          e.stopPropagation()
+          onSelect()
+        }}
+        className={cn(
+          'group/nested-row relative rounded-lg border border-dashed p-2.5 sm:p-3 transition-all cursor-pointer shadow-xs select-none my-1.5',
+          isSelected
+            ? 'border-foreground ring-1 ring-foreground/20 bg-muted/20'
+            : 'border-border/80 hover:border-foreground/40 bg-card/60',
+          isDragging && 'opacity-30 border-dashed border-foreground'
+        )}
+      >
+        {/* Floating Row Control Toolbar on Top Right */}
+        <div className="absolute -top-3.5 right-2 sm:right-3 opacity-95 sm:opacity-0 group-hover/nested-row:opacity-100 transition-opacity bg-background border rounded-md shadow-md px-1 py-0.5 flex items-center space-x-0.5 z-20">
+          <span className="text-[9px] font-semibold text-muted-foreground px-1 uppercase tracking-wider">
+            ROW
+          </span>
+
+          {/* Add Column Button (up to 6 columns) */}
+          {colCount < 6 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={(e) => {
+                e.stopPropagation()
+                addRowLayoutColumn(field.id)
+              }}
+              className="h-6 w-6 text-muted-foreground hover:text-foreground"
+              title="Add column to this nested row"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+          )}
+
+          {/* Quick Layout Presets for 2 columns */}
+          {colCount === 2 && (
+            <div className="flex items-center space-x-0.5 border-x px-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [6, 6])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths[0] === 6 && colWidths[1] === 6
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="50% / 50%"
+              >
+                6:6
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [4, 8])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths[0] === 4 && colWidths[1] === 8
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="33% / 67%"
+              >
+                4:8
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [8, 4])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths[0] === 8 && colWidths[1] === 4
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="67% / 33%"
+              >
+                8:4
+              </button>
+            </div>
+          )}
+
+          {/* Quick Layout Presets for 3 columns */}
+          {colCount === 3 && (
+            <div className="flex items-center space-x-0.5 border-x px-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [4, 4, 4])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths[0] === 4 && colWidths[1] === 4 && colWidths[2] === 4
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="33% / 33% / 33%"
+              >
+                4:4:4
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [3, 6, 3])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths[0] === 3 && colWidths[1] === 6 && colWidths[2] === 3
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="25% / 50% / 25%"
+              >
+                3:6:3
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [6, 3, 3])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths[0] === 6 && colWidths[1] === 3 && colWidths[2] === 3
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="50% / 25% / 25%"
+              >
+                6:3:3
+              </button>
+            </div>
+          )}
+
+          {/* Quick Layout Presets for 4 columns */}
+          {colCount === 4 && (
+            <div className="flex items-center space-x-0.5 border-x px-1">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRowLayoutColumnWidths(field.id, [3, 3, 3, 3])
+                }}
+                className={cn(
+                  'text-[9px] font-mono px-1 py-0.5 rounded',
+                  colWidths.every((w) => w === 3)
+                    ? 'bg-foreground text-background font-bold'
+                    : 'text-muted-foreground hover:bg-muted'
+                )}
+                title="25% each"
+              >
+                3:3:3:3
+              </button>
+            </div>
+          )}
+
+          {/* Configure / Select */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect()
+            }}
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            title="Row Properties"
+          >
+            <Sliders className="h-3 w-3" />
+          </Button>
+
+          {/* Duplicate Row */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDuplicate()
+            }}
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            title="Duplicate Row"
+          >
+            <Copy className="h-3 w-3" />
+          </Button>
+
+          {/* Drag handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+            className="cursor-grab active:cursor-grabbing text-muted-foreground/70 hover:text-foreground p-1 rounded"
+            title="Drag to move Row"
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </div>
+
+          {/* Delete Row */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemove()
+            }}
+            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+            title="Delete Row"
+          >
+            <Trash2 className="h-3 w-3" />
+          </Button>
+        </div>
+
+        {/* Fieldset / Legend title if configured */}
+        {(field.rowLayoutConfig?.fieldset || field.rowLayoutConfig?.legend) && (
+          <div className="flex items-center space-x-2 mb-2 pb-1 border-b border-border/40">
+            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
+              Legend
+            </span>
+            <span className="text-xs font-semibold text-foreground">
+              {field.rowLayoutConfig.legend || field.label}
+            </span>
+          </div>
+        )}
+
+        {/* Columns Grid with Droppable Columns */}
+        <div className="canvas-row-grid grid grid-cols-12 gap-2 w-full pt-1">
+          {childColIds.map((cId, idx) => {
+            const col = schema.columns[cId]
+            if (!col) return null
+            const nextColId = childColIds[idx + 1]
+            const nextCol = nextColId ? schema.columns[nextColId] : undefined
+
+            return (
+              <DroppableColumn
+                key={cId}
+                column={col}
+                nextColumn={nextCol}
+                columns={schema.columns}
+                fields={schema.fields}
+                selectedFieldId={selectedFieldId}
+                canRemove={childColIds.length > 1}
+                isSubColumn={true}
+                onSelectField={selectField}
+                onDuplicateField={duplicateField}
+                onRemoveField={removeField}
+                onRemoveColumn={() => removeRowLayoutColumn(field.id, cId)}
+                onResizeAdjacent={(newLeft, newRight) => {
+                  const nextWidths = childColIds.map((id) => schema.columns[id]?.width || 6)
+                  nextWidths[idx] = newLeft
+                  nextWidths[idx + 1] = newRight
+                  setRowLayoutColumnWidths(field.id, nextWidths)
+                }}
+                onSplitColumn={splitColumn}
+                onUnsplitColumn={unsplitColumn}
+                onSetSubColumnWidths={setSubColumnWidths}
+              />
+            )
+          })}
+        </div>
+      </div>
+    )
   }
 
   const fieldDef = FIELD_REGISTRY.find((r) => r.type === field.type)

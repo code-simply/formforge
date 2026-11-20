@@ -23,6 +23,7 @@ import {
   Image as ImageIcon,
   Hexagon,
   UserCircle2,
+  Columns3,
 } from 'lucide-react'
 
 export interface FieldDefinition {
@@ -201,5 +202,12 @@ export const FIELD_REGISTRY: FieldDefinition[] = [
     description: 'Agent or user profile avatar',
     category: 'layout',
     icon: UserCircle2,
+  },
+  {
+    type: 'row-layout',
+    label: 'Row & Columns',
+    description: 'Draggable nested multi-column grid',
+    category: 'layout',
+    icon: Columns3,
   },
 ]

@@ -76,6 +76,11 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
                 required={state?.required}
                 error={errorMessage}
                 customFields={customFields}
+                columns={columns}
+                fields={fields}
+                visibleFieldsMap={visibleFieldsMap}
+                fieldStateMap={fieldStateMap}
+                errors={errors}
               />
             )
           })

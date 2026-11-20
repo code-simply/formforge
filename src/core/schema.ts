@@ -27,6 +27,7 @@ export const FieldTypeSchema = z.enum([
   'logo',
   'image',
   'avatar',
+  'row-layout',
 ])
 
 export const ConditionOperatorSchema = z.enum([
@@ -117,6 +118,15 @@ export const AvatarConfigSchema = z.object({
   subtitle: z.string().optional(),
 })
 
+export const RowLayoutConfigSchema = z.object({
+  columnIds: z.array(z.string()).default([]),
+  gap: z.enum(['none', 'sm', 'md', 'lg']).default('md'),
+  title: z.string().optional(),
+  legend: z.string().optional(),
+  fieldset: z.boolean().optional(),
+  className: z.string().optional(),
+})
+
 export const WebhookConfigSchema = z.object({
   enabled: z.boolean().default(false),
   url: z.string().default(''),
@@ -149,6 +159,7 @@ export const FormFieldSchema: z.ZodType<any> = z.lazy(() =>
     logoConfig: LogoConfigSchema.optional(),
     imageConfig: ImageConfigSchema.optional(),
     avatarConfig: AvatarConfigSchema.optional(),
+    rowLayoutConfig: RowLayoutConfigSchema.optional(),
     repeatRowConfig: z
       .object({
         minRows: z.number().optional(),

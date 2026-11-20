@@ -220,6 +220,16 @@ export function getDefaultFieldValues(type: FieldType, id: string): FormField {
         },
       }
 
+    case 'row-layout':
+      return {
+        ...base,
+        label: 'Row & Columns',
+        rowLayoutConfig: {
+          columnIds: [],
+          gap: 'md',
+        },
+      }
+
     default:
       return base
   }
@@ -290,6 +300,30 @@ export function addFieldToColumn(
     nextFieldIds.push(newFieldId)
   }
 
+  const newColumns: Record<string, FormColumn> = {}
+
+  // If this is a row-layout, automatically create 2 initial child columns (6:6 / 50:50)
+  if (fieldType === 'row-layout') {
+    const col1Id = createId('col')
+    const col2Id = createId('col')
+
+    newColumns[col1Id] = {
+      id: col1Id,
+      width: 6,
+      fieldIds: [],
+    }
+    newColumns[col2Id] = {
+      id: col2Id,
+      width: 6,
+      fieldIds: [],
+    }
+
+    field.rowLayoutConfig = {
+      columnIds: [col1Id, col2Id],
+      gap: 'md',
+    }
+  }
+
   return {
     schema: {
       ...schema,
@@ -299,6 +333,7 @@ export function addFieldToColumn(
       },
       columns: {
         ...schema.columns,
+        ...newColumns,
         [columnId]: {
           ...targetColumn,
           fieldIds: nextFieldIds,
@@ -314,9 +349,30 @@ export function removeField(
   fieldId: string
 ): FormBuilderSchema {
   const nextFields = { ...schema.fields }
-  delete nextFields[fieldId]
-
   const nextColumns = { ...schema.columns }
+
+  // Recursive deletion helper for nested row-layouts and columns
+  const deleteFieldRecursive = (fId: string) => {
+    const f = nextFields[fId]
+    if (!f) return
+
+    if (f.type === 'row-layout' && f.rowLayoutConfig?.columnIds) {
+      for (const cId of f.rowLayoutConfig.columnIds) {
+        const col = nextColumns[cId]
+        if (col) {
+          for (const childFId of col.fieldIds) {
+            deleteFieldRecursive(childFId)
+          }
+          delete nextColumns[cId]
+        }
+      }
+    }
+    delete nextFields[fId]
+  }
+
+  deleteFieldRecursive(fieldId)
+
+  // Remove fieldId from parent column
   for (const colId of Object.keys(nextColumns)) {
     if (nextColumns[colId].fieldIds.includes(fieldId)) {
       nextColumns[colId] = {
@@ -340,13 +396,54 @@ export function duplicateField(
   const source = schema.fields[fieldId]
   if (!source) return schema
 
-  const newId = createId('field')
-  const duplicated: FormField = {
-    ...JSON.parse(JSON.stringify(source)),
-    id: newId,
-    name: `${source.name}_copy`,
-    label: `${source.label} (Copy)`,
+  const nextFields = { ...schema.fields }
+  const nextColumns = { ...schema.columns }
+
+  // Recursive clone helper for fields and nested row-layouts
+  const cloneFieldRecursive = (f: FormField): FormField => {
+    const newFId = createId('field')
+    const cloned: FormField = {
+      ...JSON.parse(JSON.stringify(f)),
+      id: newFId,
+      name: `${f.name}_copy`,
+      label: `${f.label} (Copy)`,
+    }
+
+    if (f.type === 'row-layout' && f.rowLayoutConfig?.columnIds) {
+      const newColIds: string[] = []
+      for (const cId of f.rowLayoutConfig.columnIds) {
+        const sourceCol = schema.columns[cId]
+        if (sourceCol) {
+          const newCId = createId('col')
+          newColIds.push(newCId)
+          const newChildFieldIds: string[] = []
+
+          for (const childFId of sourceCol.fieldIds) {
+            const childField = schema.fields[childFId]
+            if (childField) {
+              const clonedChild = cloneFieldRecursive(childField)
+              newChildFieldIds.push(clonedChild.id)
+            }
+          }
+
+          nextColumns[newCId] = {
+            ...sourceCol,
+            id: newCId,
+            fieldIds: newChildFieldIds,
+          }
+        }
+      }
+      cloned.rowLayoutConfig = {
+        ...f.rowLayoutConfig,
+        columnIds: newColIds,
+      }
+    }
+
+    nextFields[newFId] = cloned
+    return cloned
   }
+
+  const duplicated = cloneFieldRecursive(source)
 
   // Find column containing fieldId
   let targetColId: string | undefined
@@ -362,20 +459,15 @@ export function duplicateField(
 
   if (!targetColId) return schema
 
-  const nextCol = { ...schema.columns[targetColId] }
+  const nextCol = { ...nextColumns[targetColId] }
   nextCol.fieldIds = [...nextCol.fieldIds]
-  nextCol.fieldIds.splice(targetIndex + 1, 0, newId)
+  nextCol.fieldIds.splice(targetIndex + 1, 0, duplicated.id)
+  nextColumns[targetColId] = nextCol
 
   return {
     ...schema,
-    fields: {
-      ...schema.fields,
-      [newId]: duplicated,
-    },
-    columns: {
-      ...schema.columns,
-      [targetColId]: nextCol,
-    },
+    fields: nextFields,
+    columns: nextColumns,
   }
 }
 
@@ -444,24 +536,26 @@ export function removeRow(
   const targetRow = schema.rows[rowId]
   if (!targetRow) return schema
 
-  const nextFields = { ...schema.fields }
-  const nextColumns = { ...schema.columns }
-
-  // Clean up all columns & fields in row
+  let currentSchema = schema
+  // Clean up all fields in row recursively (including nested row-layout children)
   for (const colId of targetRow.columnIds) {
     const col = schema.columns[colId]
     if (col) {
-      for (const fieldId of col.fieldIds) {
-        delete nextFields[fieldId]
+      for (const fieldId of [...col.fieldIds]) {
+        currentSchema = removeField(currentSchema, fieldId)
       }
-      delete nextColumns[colId]
     }
   }
 
-  const nextRows = { ...schema.rows }
+  const nextColumns = { ...currentSchema.columns }
+  for (const colId of targetRow.columnIds) {
+    delete nextColumns[colId]
+  }
+
+  const nextRows = { ...currentSchema.rows }
   delete nextRows[rowId]
 
-  const nextPages = { ...schema.pages }
+  const nextPages = { ...currentSchema.pages }
   for (const pId of Object.keys(nextPages)) {
     if (nextPages[pId].rowIds.includes(rowId)) {
       nextPages[pId] = {
@@ -472,8 +566,7 @@ export function removeRow(
   }
 
   return {
-    ...schema,
-    fields: nextFields,
+    ...currentSchema,
     columns: nextColumns,
     rows: nextRows,
     pages: nextPages,
@@ -603,6 +696,158 @@ export function removeColumnFromRow(
         columnIds: remainingColIds,
       },
     },
+  }
+}
+
+/**
+ * Sets column widths for a row-layout field
+ */
+export function setRowLayoutColumnWidths(
+  schema: FormBuilderSchema,
+  fieldId: string,
+  widths: number[]
+): FormBuilderSchema {
+  const field = schema.fields[fieldId]
+  if (!field || field.type !== 'row-layout' || !field.rowLayoutConfig?.columnIds) {
+    return schema
+  }
+
+  const nextColumns = { ...schema.columns }
+  field.rowLayoutConfig.columnIds.forEach((cId, idx) => {
+    if (nextColumns[cId] && widths[idx] !== undefined) {
+      nextColumns[cId] = {
+        ...nextColumns[cId],
+        width: Math.min(Math.max(widths[idx], 1), 12),
+      }
+    }
+  })
+
+  return {
+    ...schema,
+    columns: nextColumns,
+  }
+}
+
+/**
+ * Adds a column to a row-layout field (up to 6 columns)
+ */
+export function addRowLayoutColumn(
+  schema: FormBuilderSchema,
+  fieldId: string
+): FormBuilderSchema {
+  const field = schema.fields[fieldId]
+  if (!field || field.type !== 'row-layout') return schema
+
+  const currentColIds = field.rowLayoutConfig?.columnIds || []
+  if (currentColIds.length >= 6) return schema
+
+  const newColCount = currentColIds.length + 1
+  const newColId = createId('col')
+  const newColIds = [...currentColIds, newColId]
+
+  // Calculate balanced widths summing to 12
+  const baseWidth = Math.floor(12 / newColCount)
+  const remainder = 12 % newColCount
+
+  const newWidths: number[] = newColIds.map((_, idx) =>
+    baseWidth + (idx < remainder ? 1 : 0)
+  )
+
+  const nextColumns = { ...schema.columns }
+  newColIds.forEach((cId, idx) => {
+    if (cId === newColId) {
+      nextColumns[cId] = {
+        id: cId,
+        width: newWidths[idx],
+        fieldIds: [],
+      }
+    } else if (nextColumns[cId]) {
+      nextColumns[cId] = {
+        ...nextColumns[cId],
+        width: newWidths[idx],
+      }
+    }
+  })
+
+  const nextField: FormField = {
+    ...field,
+    rowLayoutConfig: {
+      ...field.rowLayoutConfig,
+      columnIds: newColIds,
+    },
+  }
+
+  return {
+    ...schema,
+    fields: {
+      ...schema.fields,
+      [fieldId]: nextField,
+    },
+    columns: nextColumns,
+  }
+}
+
+/**
+ * Removes a column from a row-layout field
+ */
+export function removeRowLayoutColumn(
+  schema: FormBuilderSchema,
+  fieldId: string,
+  columnIdToRemove: string
+): FormBuilderSchema {
+  const field = schema.fields[fieldId]
+  if (!field || field.type !== 'row-layout' || !field.rowLayoutConfig?.columnIds) {
+    return schema
+  }
+
+  const currentColIds = field.rowLayoutConfig.columnIds
+  if (currentColIds.length <= 1) {
+    // If only 1 column left and removed, delete the row-layout field entirely
+    return removeField(schema, fieldId)
+  }
+
+  const nextColIds = currentColIds.filter((id) => id !== columnIdToRemove)
+  const colToRemove = schema.columns[columnIdToRemove]
+
+  let currentSchema = schema
+  // Clean up any fields inside the removed column
+  if (colToRemove) {
+    for (const fId of [...colToRemove.fieldIds]) {
+      currentSchema = removeField(currentSchema, fId)
+    }
+  }
+
+  const nextColumns = { ...currentSchema.columns }
+  delete nextColumns[columnIdToRemove]
+
+  // Re-balance widths among remaining columns
+  const baseWidth = Math.floor(12 / nextColIds.length)
+  const remainder = 12 % nextColIds.length
+
+  nextColIds.forEach((cId, idx) => {
+    if (nextColumns[cId]) {
+      nextColumns[cId] = {
+        ...nextColumns[cId],
+        width: baseWidth + (idx < remainder ? 1 : 0),
+      }
+    }
+  })
+
+  const nextField: FormField = {
+    ...field,
+    rowLayoutConfig: {
+      ...field.rowLayoutConfig,
+      columnIds: nextColIds,
+    },
+  }
+
+  return {
+    ...currentSchema,
+    fields: {
+      ...currentSchema.fields,
+      [fieldId]: nextField,
+    },
+    columns: nextColumns,
   }
 }
 
@@ -904,7 +1149,7 @@ export function buildZodValidationSchema(
     // Hidden or static fields don't require input validation
     if (
       !visibleFieldIds.has(field.id) ||
-      ['heading', 'paragraph', 'separator', 'button', 'logo', 'image', 'avatar'].includes(field.type)
+      ['heading', 'paragraph', 'separator', 'button', 'logo', 'image', 'avatar', 'row-layout'].includes(field.type)
     ) {
       continue
     }

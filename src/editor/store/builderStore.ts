@@ -26,6 +26,9 @@ import {
   splitColumn,
   unsplitColumn,
   setSubColumnWidths,
+  setRowLayoutColumnWidths,
+  addRowLayoutColumn,
+  removeRowLayoutColumn,
 } from '../../core/normalizer'
 
 export interface BuilderState {
@@ -66,6 +69,9 @@ export interface BuilderState {
   splitColumn: (columnId: string, count?: number) => void
   unsplitColumn: (columnId: string) => void
   setSubColumnWidths: (parentColId: string, widths: number[]) => void
+  setRowLayoutColumnWidths: (fieldId: string, widths: number[]) => void
+  addRowLayoutColumn: (fieldId: string) => void
+  removeRowLayoutColumn: (fieldId: string, columnId: string) => void
 
   addPage: (title?: string) => void
   removePage: (pageId: string) => void
@@ -335,6 +341,33 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
     setSubColumnWidths: (parentColId, widths) => {
       const { schema } = get()
       const nextSchema = setSubColumnWidths(schema, parentColId, widths)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    setRowLayoutColumnWidths: (fieldId, widths) => {
+      const { schema } = get()
+      const nextSchema = setRowLayoutColumnWidths(schema, fieldId, widths)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    addRowLayoutColumn: (fieldId) => {
+      const { schema } = get()
+      const nextSchema = addRowLayoutColumn(schema, fieldId)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    removeRowLayoutColumn: (fieldId, columnId) => {
+      const { schema } = get()
+      const nextSchema = removeRowLayoutColumn(schema, fieldId, columnId)
       set({
         schema: nextSchema,
         ...pushHistory(schema),

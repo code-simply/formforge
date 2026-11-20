@@ -29,6 +29,8 @@ export const PropertiesPanel: React.FC = () => {
     removeField,
     updateSettings,
     selectField,
+    addRowLayoutColumn,
+    setRowLayoutColumnWidths,
   } = useBuilderStore()
 
   // Main top panel tab: 'element' or 'form'
@@ -40,6 +42,7 @@ export const PropertiesPanel: React.FC = () => {
   // If no field is selected, default to 'form' view
   const currentTab = field ? panelTab : 'form'
 
+  const isRowLayout = field ? field.type === 'row-layout' : false
   const isMediaField = field ? ['logo', 'image', 'avatar'].includes(field.type) : false
   const hasOptions = field ? ['select', 'multi-select', 'radio-group', 'checkbox-group'].includes(field.type) : false
   const isTextInput = field ? ['text', 'email', 'password', 'phone', 'url', 'textarea', 'number'].includes(field.type) : false
@@ -307,22 +310,24 @@ export const PropertiesPanel: React.FC = () => {
             onValueChange={(v: any) => setActiveSubTab(v)}
             className="flex-1 flex flex-col overflow-hidden"
           >
-            <TabsList className="grid grid-cols-4 m-2">
+            <TabsList className={`grid m-2 ${isRowLayout ? 'grid-cols-2' : 'grid-cols-4'}`}>
               <TabsTrigger value="general" title="General Settings">
                 <Settings2 className="h-3.5 w-3.5" />
               </TabsTrigger>
-              {isMediaField ? (
-                <TabsTrigger value="media" title="Media & Branding">
-                  <ImageIcon className="h-3.5 w-3.5" />
-                </TabsTrigger>
-              ) : hasOptions ? (
-                <TabsTrigger value="options" title="Options / Choices">
-                  <span className="text-xs font-medium">Opt</span>
-                </TabsTrigger>
-              ) : (
-                <TabsTrigger value="validation" title="Validation Rules">
-                  <ShieldCheck className="h-3.5 w-3.5" />
-                </TabsTrigger>
+              {!isRowLayout && (
+                isMediaField ? (
+                  <TabsTrigger value="media" title="Media & Branding">
+                    <ImageIcon className="h-3.5 w-3.5" />
+                  </TabsTrigger>
+                ) : hasOptions ? (
+                  <TabsTrigger value="options" title="Options / Choices">
+                    <span className="text-xs font-medium">Opt</span>
+                  </TabsTrigger>
+                ) : (
+                  <TabsTrigger value="validation" title="Validation Rules">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                  </TabsTrigger>
+                )
               )}
               {isMediaField ? (
                 <TabsTrigger value="conditions" title="Conditional Display">
@@ -330,7 +335,7 @@ export const PropertiesPanel: React.FC = () => {
                 </TabsTrigger>
               ) : (
                 <>
-                  {hasOptions && (
+                  {!isRowLayout && hasOptions && (
                     <TabsTrigger value="validation" title="Validation Rules">
                       <ShieldCheck className="h-3.5 w-3.5" />
                     </TabsTrigger>
@@ -345,73 +350,229 @@ export const PropertiesPanel: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-3 space-y-4">
               {/* GENERAL TAB */}
               <TabsContent value="general" className="mt-0 space-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Field Label / Title</Label>
-                  <Input
-                    value={field.label}
-                    onChange={(e) => updateField(field.id, { label: e.target.value })}
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Field Identifier (Name)</Label>
-                  <Input
-                    value={field.name}
-                    onChange={(e) => updateField(field.id, { name: e.target.value })}
-                    className="font-mono text-xs"
-                  />
-                </div>
-
-                {!isMediaField && (
-                  <>
+                {isRowLayout ? (
+                  <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Placeholder</Label>
+                      <Label className="text-xs">Row / Grid Title</Label>
                       <Input
-                        value={field.placeholder || ''}
-                        onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                        value={field.label}
+                        onChange={(e) => updateField(field.id, { label: e.target.value })}
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Description / Subtitle</Label>
-                      <Textarea
-                        value={field.description || ''}
-                        onChange={(e) => updateField(field.id, { description: e.target.value })}
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="space-y-1.5">
-                      <Label className="text-xs">Help Text (Tooltip/Right)</Label>
-                      <Input
-                        value={field.helpText || ''}
-                        onChange={(e) => updateField(field.id, { helpText: e.target.value })}
-                      />
+                      <Label className="text-xs">Column Spacing (Gap)</Label>
+                      <Select
+                        value={field.rowLayoutConfig?.gap || 'md'}
+                        onValueChange={(val: any) =>
+                          updateField(field.id, {
+                            rowLayoutConfig: {
+                              ...field.rowLayoutConfig,
+                              columnIds: field.rowLayoutConfig?.columnIds || [],
+                              gap: val,
+                            },
+                          })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No Gap (gap-0)</SelectItem>
+                          <SelectItem value="sm">Small (gap-2)</SelectItem>
+                          <SelectItem value="md">Medium (gap-4)</SelectItem>
+                          <SelectItem value="lg">Large (gap-6)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
 
                     <div className="pt-2 border-t space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
-                          <Label className="text-xs cursor-pointer">Required Field</Label>
-                          <p className="text-[10px] text-muted-foreground">Mandatory for form submission</p>
+                          <Label className="text-xs cursor-pointer">Fieldset Border</Label>
+                          <p className="text-[10px] text-muted-foreground">Wrap columns in semantic fieldset border</p>
                         </div>
                         <Switch
-                          checked={!!field.required}
-                          onCheckedChange={(val) => updateField(field.id, { required: val })}
+                          checked={!!field.rowLayoutConfig?.fieldset}
+                          onCheckedChange={(val) =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                fieldset: val,
+                              },
+                            })
+                          }
                         />
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <Label className="text-xs cursor-pointer">Disabled State</Label>
-                          <p className="text-[10px] text-muted-foreground">Read-only interactive state</p>
-                        </div>
-                        <Switch
-                          checked={!!field.disabled}
-                          onCheckedChange={(val) => updateField(field.id, { disabled: val })}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs">Fieldset Legend Title</Label>
+                        <Input
+                          value={field.rowLayoutConfig?.legend || ''}
+                          placeholder="e.g. Personal Information"
+                          onChange={(e) =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                legend: e.target.value,
+                              },
+                            })
+                          }
+                          className="h-8 text-xs"
                         />
                       </div>
                     </div>
+
+                    <div className="pt-2 border-t space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold">
+                          Columns ({(field.rowLayoutConfig?.columnIds || []).length})
+                        </Label>
+                        {(field.rowLayoutConfig?.columnIds || []).length < 6 && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addRowLayoutColumn(field.id)}
+                            className="h-6 px-2 text-[10px]"
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Col
+                          </Button>
+                        )}
+                      </div>
+
+                      {(field.rowLayoutConfig?.columnIds || []).length === 2 && (
+                        <div className="grid grid-cols-3 gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRowLayoutColumnWidths(field.id, [6, 6])}
+                            className="text-xs h-7"
+                          >
+                            50% / 50%
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRowLayoutColumnWidths(field.id, [4, 8])}
+                            className="text-xs h-7"
+                          >
+                            33% / 67%
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRowLayoutColumnWidths(field.id, [8, 4])}
+                            className="text-xs h-7"
+                          >
+                            67% / 33%
+                          </Button>
+                        </div>
+                      )}
+
+                      {(field.rowLayoutConfig?.columnIds || []).length === 3 && (
+                        <div className="grid grid-cols-3 gap-1">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRowLayoutColumnWidths(field.id, [4, 4, 4])}
+                            className="text-xs h-7"
+                          >
+                            Equal (1/3)
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRowLayoutColumnWidths(field.id, [3, 6, 3])}
+                            className="text-xs h-7"
+                          >
+                            25:50:25
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setRowLayoutColumnWidths(field.id, [6, 3, 3])}
+                            className="text-xs h-7"
+                          >
+                            50:25:25
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Field Label / Title</Label>
+                      <Input
+                        value={field.label}
+                        onChange={(e) => updateField(field.id, { label: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Field Identifier (Name)</Label>
+                      <Input
+                        value={field.name}
+                        onChange={(e) => updateField(field.id, { name: e.target.value })}
+                        className="font-mono text-xs"
+                      />
+                    </div>
+
+                    {!isMediaField && (
+                      <>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Placeholder</Label>
+                          <Input
+                            value={field.placeholder || ''}
+                            onChange={(e) => updateField(field.id, { placeholder: e.target.value })}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Description / Subtitle</Label>
+                          <Textarea
+                            value={field.description || ''}
+                            onChange={(e) => updateField(field.id, { description: e.target.value })}
+                            rows={2}
+                          />
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-xs">Help Text (Tooltip/Right)</Label>
+                          <Input
+                            value={field.helpText || ''}
+                            onChange={(e) => updateField(field.id, { helpText: e.target.value })}
+                          />
+                        </div>
+
+                        <div className="pt-2 border-t space-y-3">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label className="text-xs cursor-pointer">Required Field</Label>
+                              <p className="text-[10px] text-muted-foreground">Mandatory for form submission</p>
+                            </div>
+                            <Switch
+                              checked={!!field.required}
+                              onCheckedChange={(val) => updateField(field.id, { required: val })}
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <Label className="text-xs cursor-pointer">Disabled State</Label>
+                              <p className="text-[10px] text-muted-foreground">Read-only interactive state</p>
+                            </div>
+                            <Switch
+                              checked={!!field.disabled}
+                              onCheckedChange={(val) => updateField(field.id, { disabled: val })}
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </>
                 )}
               </TabsContent>

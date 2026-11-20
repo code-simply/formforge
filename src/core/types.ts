@@ -25,6 +25,7 @@ export type FieldType =
   | 'logo'
   | 'image'
   | 'avatar'
+  | 'row-layout'
 
 export type ConditionOperator =
   | 'equals'
@@ -121,6 +122,15 @@ export interface AvatarConfig {
   subtitle?: string
 }
 
+export interface RowLayoutConfig {
+  columnIds: string[]
+  gap?: 'none' | 'sm' | 'md' | 'lg'
+  title?: string
+  legend?: string
+  fieldset?: boolean
+  className?: string
+}
+
 export interface WebhookConfig {
   enabled: boolean
   url: string
@@ -153,6 +163,7 @@ export interface FormField {
   logoConfig?: LogoConfig
   imageConfig?: ImageConfig
   avatarConfig?: AvatarConfig
+  rowLayoutConfig?: RowLayoutConfig
   customAttributes?: Record<string, unknown>
 }
 

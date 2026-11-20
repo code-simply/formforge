@@ -1,6 +1,6 @@
 import React from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
-import { FormField } from '../core/types'
+import { FormColumn, FormField } from '../core/types'
 import { getCustomField, CustomFieldComponentProps } from '../core/customFields'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
@@ -28,6 +28,11 @@ export interface FormFieldProps {
   required?: boolean
   error?: string
   customFields?: Record<string, React.ComponentType<CustomFieldComponentProps>>
+  columns?: Record<string, FormColumn>
+  fields?: Record<string, FormField>
+  visibleFieldsMap?: Record<string, boolean>
+  fieldStateMap?: Record<string, { visible: boolean; disabled: boolean; required: boolean }>
+  errors?: Record<string, any>
 }
 
 export const FormFieldRenderer: React.FC<FormFieldProps> = ({
@@ -36,11 +41,16 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
   required = false,
   error,
   customFields = {},
+  columns,
+  fields,
+  visibleFieldsMap,
+  fieldStateMap,
+  errors = {},
 }) => {
   const { control } = useFormContext()
   const fieldKey = field.name || field.id
 
-  const isStatic = ['heading', 'paragraph', 'separator', 'button', 'logo', 'image', 'avatar'].includes(field.type)
+  const isStatic = ['heading', 'paragraph', 'separator', 'button', 'logo', 'image', 'avatar', 'row-layout'].includes(field.type)
 
   // Check for custom field component (passed via prop or globally registered)
   const CustomComponent = customFields[field.type] || getCustomField(field.type)?.component
@@ -716,6 +726,86 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
             </div>
           </div>
         )
+      }
+
+      case 'row-layout': {
+        const colIds = field.rowLayoutConfig?.columnIds || []
+        const gapClass =
+          field.rowLayoutConfig?.gap === 'none'
+            ? 'gap-0'
+            : field.rowLayoutConfig?.gap === 'sm'
+            ? 'gap-2'
+            : field.rowLayoutConfig?.gap === 'lg'
+            ? 'gap-6'
+            : 'gap-4'
+
+        const content = (
+          <div className={cn('grid grid-cols-12 w-full', gapClass, field.rowLayoutConfig?.className)}>
+            {colIds.map((cId) => {
+              const col = columns?.[cId]
+              if (!col) return null
+              const span = Math.min(Math.max(col.width || 12, 1), 12)
+              const colSpanClass =
+                span === 1 ? 'col-span-12 sm:col-span-1'
+                : span === 2 ? 'col-span-12 sm:col-span-2'
+                : span === 3 ? 'col-span-12 sm:col-span-3'
+                : span === 4 ? 'col-span-12 sm:col-span-4'
+                : span === 5 ? 'col-span-12 sm:col-span-5'
+                : span === 6 ? 'col-span-12 sm:col-span-6'
+                : span === 7 ? 'col-span-12 sm:col-span-7'
+                : span === 8 ? 'col-span-12 sm:col-span-8'
+                : span === 9 ? 'col-span-12 sm:col-span-9'
+                : span === 10 ? 'col-span-12 sm:col-span-10'
+                : span === 11 ? 'col-span-12 sm:col-span-11'
+                : 'col-span-12'
+
+              return (
+                <div key={cId} className={cn('flex flex-col space-y-3', colSpanClass, col.className)}>
+                  {col.fieldIds.map((childFId) => {
+                    if (visibleFieldsMap && !visibleFieldsMap[childFId]) return null
+                    const childField = fields?.[childFId]
+                    if (!childField) return null
+
+                    const childState = fieldStateMap?.[childFId]
+                    const childErrObj = errors[childField.name || childField.id]
+                    const childErrMsg = childErrObj?.message ? String(childErrObj.message) : undefined
+
+                    return (
+                      <FormFieldRenderer
+                        key={childFId}
+                        field={childField}
+                        disabled={childState?.disabled}
+                        required={childState?.required}
+                        error={childErrMsg}
+                        customFields={customFields}
+                        columns={columns}
+                        fields={fields}
+                        visibleFieldsMap={visibleFieldsMap}
+                        fieldStateMap={fieldStateMap}
+                        errors={errors}
+                      />
+                    )
+                  })}
+                </div>
+              )
+            })}
+          </div>
+        )
+
+        if (field.rowLayoutConfig?.fieldset || field.rowLayoutConfig?.legend) {
+          return (
+            <fieldset className="border rounded-lg p-3 sm:p-4 my-2">
+              {field.rowLayoutConfig.legend && (
+                <legend className="text-xs font-semibold px-2 text-foreground">
+                  {field.rowLayoutConfig.legend}
+                </legend>
+              )}
+              {content}
+            </fieldset>
+          )
+        }
+
+        return content
       }
 
       default:
