@@ -1,6 +1,6 @@
 {
   "name": "shadform",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "ShadForm: Modern TypeScript drag-and-drop form builder & renderer built on shadcn/ui, Tailwind CSS, React Hook Form, and Zod",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -54,6 +54,9 @@
   ],
   "author": "Parthiban (https://github.com/code-simply)",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "vite",
     "build:css": "tailwindcss -i ./src/styles/index.css -o ./dist/style.css --minify",
