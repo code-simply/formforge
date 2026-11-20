@@ -1,6 +1,6 @@
 {
   "name": "@parhtiban/formforge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "FormForge: Modern TypeScript drag-and-drop form builder & renderer built on shadcn/ui, Tailwind CSS, React Hook Form, and Zod",
   "type": "module",
   "main": "./dist/index.cjs",
