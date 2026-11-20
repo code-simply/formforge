@@ -166,6 +166,7 @@ export const FormColumnSchema = z.object({
   id: z.string(),
   width: z.number().min(1).max(12).default(12),
   fieldIds: z.array(z.string()).default([]),
+  columnIds: z.array(z.string()).optional(),
   className: z.string().optional(),
 })
 

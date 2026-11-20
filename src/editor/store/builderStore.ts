@@ -23,6 +23,9 @@ import {
   removeColumnFromRow,
   updateRow,
   duplicateRow,
+  splitColumn,
+  unsplitColumn,
+  setSubColumnWidths,
 } from '../../core/normalizer'
 
 export interface BuilderState {
@@ -60,6 +63,9 @@ export interface BuilderState {
   setRowColumnWidths: (rowId: string, widths: number[]) => void
   addColumnToRow: (rowId: string) => void
   removeColumnFromRow: (rowId: string, columnId: string) => void
+  splitColumn: (columnId: string, count?: number) => void
+  unsplitColumn: (columnId: string) => void
+  setSubColumnWidths: (parentColId: string, widths: number[]) => void
 
   addPage: (title?: string) => void
   removePage: (pageId: string) => void
@@ -302,6 +308,33 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
     removeColumnFromRow: (rowId, columnId) => {
       const { schema } = get()
       const nextSchema = removeColumnFromRow(schema, rowId, columnId)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    splitColumn: (columnId, count = 3) => {
+      const { schema } = get()
+      const nextSchema = splitColumn(schema, columnId, count)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    unsplitColumn: (columnId) => {
+      const { schema } = get()
+      const nextSchema = unsplitColumn(schema, columnId)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    setSubColumnWidths: (parentColId, widths) => {
+      const { schema } = get()
+      const nextSchema = setSubColumnWidths(schema, parentColId, widths)
       set({
         schema: nextSchema,
         ...pushHistory(schema),

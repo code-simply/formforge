@@ -34,6 +34,9 @@ export const Canvas: React.FC = () => {
     setRowColumnWidths,
     addColumnToRow,
     removeColumnFromRow,
+    splitColumn,
+    unsplitColumn,
+    setSubColumnWidths,
   } = useBuilderStore()
 
   const [activeRowSettingsId, setActiveRowSettingsId] = useState<string | null>(null)
@@ -301,6 +304,7 @@ export const Canvas: React.FC = () => {
                         key={colId}
                         column={col}
                         nextColumn={nextCol}
+                        columns={schema.columns}
                         fields={schema.fields}
                         selectedFieldId={selectedFieldId}
                         canRemove={row.columnIds.length > 1}
@@ -314,6 +318,9 @@ export const Canvas: React.FC = () => {
                           setRowColumnWidths(rowId, newWidths)
                         }}
                         onRemoveColumn={() => removeColumnFromRow(rowId, colId)}
+                        onSplitColumn={(cId, count) => splitColumn(cId, count)}
+                        onUnsplitColumn={(cId) => unsplitColumn(cId)}
+                        onSetSubColumnWidths={(parentColId, widths) => setSubColumnWidths(parentColId, widths)}
                       />
                     )
                   })}

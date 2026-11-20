@@ -607,6 +607,112 @@ export function removeColumnFromRow(
 }
 
 /**
+ * Sets the widths of sub-columns inside a parent column
+ */
+export function setSubColumnWidths(
+  schema: FormBuilderSchema,
+  parentColId: string,
+  widths: number[]
+): FormBuilderSchema {
+  const parentCol = schema.columns[parentColId]
+  if (!parentCol || !parentCol.columnIds) return schema
+
+  const nextColumns = { ...schema.columns }
+  parentCol.columnIds.forEach((subColId, idx) => {
+    if (nextColumns[subColId] && widths[idx] !== undefined) {
+      nextColumns[subColId] = {
+        ...nextColumns[subColId],
+        width: Math.min(Math.max(widths[idx], 1), 12),
+      }
+    }
+  })
+
+  return {
+    ...schema,
+    columns: nextColumns,
+  }
+}
+
+/**
+ * Splits a column into nested sub-columns (e.g. 2, 3, or 4 sub-columns inside this column)
+ */
+export function splitColumn(
+  schema: FormBuilderSchema,
+  columnId: string,
+  count: number = 3
+): FormBuilderSchema {
+  const targetCol = schema.columns[columnId]
+  if (!targetCol) return schema
+
+  const clampedCount = Math.min(Math.max(count, 2), 4)
+  const evenWidth = Math.floor(12 / clampedCount)
+  const remainder = 12 - evenWidth * clampedCount
+
+  const newSubColumnIds: string[] = []
+  const newSubColumns: Record<string, FormColumn> = {}
+
+  for (let i = 0; i < clampedCount; i++) {
+    const subColId = createId('subcol')
+    newSubColumnIds.push(subColId)
+    // Put existing fields into the first sub-column so no data is lost
+    const fieldIds = i === 0 ? [...targetCol.fieldIds] : []
+    newSubColumns[subColId] = {
+      id: subColId,
+      width: evenWidth + (i === 0 ? remainder : 0),
+      fieldIds,
+    }
+  }
+
+  return {
+    ...schema,
+    columns: {
+      ...schema.columns,
+      ...newSubColumns,
+      [columnId]: {
+        ...targetCol,
+        fieldIds: [], // Fields moved to the first sub-column
+        columnIds: newSubColumnIds,
+      },
+    },
+  }
+}
+
+/**
+ * Unsplits a column by merging all child sub-columns back into a single column
+ */
+export function unsplitColumn(
+  schema: FormBuilderSchema,
+  columnId: string
+): FormBuilderSchema {
+  const targetCol = schema.columns[columnId]
+  if (!targetCol || !targetCol.columnIds || targetCol.columnIds.length === 0) return schema
+
+  const nextColumns = { ...schema.columns }
+  const mergedFieldIds: string[] = []
+
+  for (const subColId of targetCol.columnIds) {
+    const subCol = nextColumns[subColId]
+    if (subCol) {
+      mergedFieldIds.push(...subCol.fieldIds)
+      delete nextColumns[subColId]
+    }
+  }
+
+  const { columnIds: _removed, ...restTargetCol } = targetCol
+
+  return {
+    ...schema,
+    columns: {
+      ...nextColumns,
+      [columnId]: {
+        ...restTargetCol,
+        fieldIds: mergedFieldIds,
+      },
+    },
+  }
+}
+
+/**
  * Updates a row's properties (title, fieldset, className, conditions)
  */
 export function updateRow(

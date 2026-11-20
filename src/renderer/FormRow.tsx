@@ -56,28 +56,62 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
             ? 'col-span-12 sm:col-span-11'
             : 'col-span-12'
 
+        const hasSubColumns = column.columnIds && column.columnIds.length > 0
+
+        const renderFieldList = (fieldIdList: string[]) =>
+          fieldIdList.map((fId) => {
+            if (!visibleFieldsMap[fId]) return null
+            const field = fields[fId]
+            if (!field) return null
+
+            const state = fieldStateMap[fId]
+            const errorObj = errors[field.name || field.id]
+            const errorMessage = errorObj?.message ? String(errorObj.message) : undefined
+
+            return (
+              <FormFieldRenderer
+                key={fId}
+                field={field}
+                disabled={state?.disabled}
+                required={state?.required}
+                error={errorMessage}
+                customFields={customFields}
+              />
+            )
+          })
+
         return (
           <div key={colId} className={cn('flex flex-col space-y-3', colSpanClass, column.className)}>
-            {column.fieldIds.map((fId) => {
-              if (!visibleFieldsMap[fId]) return null
-              const field = fields[fId]
-              if (!field) return null
+            {hasSubColumns ? (
+              <div className="grid grid-cols-12 gap-3 w-full">
+                {column.columnIds!.map((subColId) => {
+                  const subCol = columns[subColId]
+                  if (!subCol) return null
+                  const subSpan = Math.min(Math.max(subCol.width || 12, 1), 12)
+                  const subSpanClass =
+                    subSpan === 1 ? 'col-span-12 sm:col-span-1'
+                    : subSpan === 2 ? 'col-span-12 sm:col-span-2'
+                    : subSpan === 3 ? 'col-span-12 sm:col-span-3'
+                    : subSpan === 4 ? 'col-span-12 sm:col-span-4'
+                    : subSpan === 5 ? 'col-span-12 sm:col-span-5'
+                    : subSpan === 6 ? 'col-span-12 sm:col-span-6'
+                    : subSpan === 7 ? 'col-span-12 sm:col-span-7'
+                    : subSpan === 8 ? 'col-span-12 sm:col-span-8'
+                    : subSpan === 9 ? 'col-span-12 sm:col-span-9'
+                    : subSpan === 10 ? 'col-span-12 sm:col-span-10'
+                    : subSpan === 11 ? 'col-span-12 sm:col-span-11'
+                    : 'col-span-12'
 
-              const state = fieldStateMap[fId]
-              const errorObj = errors[field.name || field.id]
-              const errorMessage = errorObj?.message ? String(errorObj.message) : undefined
-
-              return (
-                <FormFieldRenderer
-                  key={fId}
-                  field={field}
-                  disabled={state?.disabled}
-                  required={state?.required}
-                  error={errorMessage}
-                  customFields={customFields}
-                />
-              )
-            })}
+                  return (
+                    <div key={subColId} className={cn('flex flex-col space-y-3', subSpanClass, subCol.className)}>
+                      {renderFieldList(subCol.fieldIds)}
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              renderFieldList(column.fieldIds)
+            )}
           </div>
         )
       })}

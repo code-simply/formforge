@@ -160,6 +160,7 @@ export interface FormColumn {
   id: string
   width: number // 1 to 12 in a 12-column grid
   fieldIds: string[]
+  columnIds?: string[] // Optional nested sub-columns inside this column
   className?: string
 }
 
