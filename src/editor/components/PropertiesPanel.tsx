@@ -386,6 +386,88 @@ export const PropertiesPanel: React.FC = () => {
                       </Select>
                     </div>
 
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Vertical Alignment</Label>
+                      <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                alignItems: 'top',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded font-medium transition-colors ${
+                            field.rowLayoutConfig?.alignItems === 'top'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Top
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                alignItems: 'center',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded font-medium transition-colors ${
+                            field.rowLayoutConfig?.alignItems === 'center'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Mid
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                alignItems: 'bottom',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded font-medium transition-colors ${
+                            field.rowLayoutConfig?.alignItems === 'bottom'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Bot
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateField(field.id, {
+                              rowLayoutConfig: {
+                                ...field.rowLayoutConfig,
+                                columnIds: field.rowLayoutConfig?.columnIds || [],
+                                alignItems: 'stretch',
+                              },
+                            })
+                          }
+                          className={`py-1 rounded font-medium transition-colors ${
+                            !field.rowLayoutConfig?.alignItems || field.rowLayoutConfig?.alignItems === 'stretch'
+                              ? 'bg-background text-foreground shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Fit
+                        </button>
+                      </div>
+                    </div>
+
                     <div className="pt-2 border-t space-y-3">
                       <div className="flex items-center justify-between">
                         <div>
@@ -546,6 +628,100 @@ export const PropertiesPanel: React.FC = () => {
                             value={field.helpText || ''}
                             onChange={(e) => updateField(field.id, { helpText: e.target.value })}
                           />
+                        </div>
+
+                        {/* Label Placement & Responsive Alignment */}
+                        <div className="space-y-1.5 pt-1">
+                          <Label className="text-xs">Label Position</Label>
+                          <div className="grid grid-cols-3 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { labelPosition: 'top' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                !field.labelPosition || field.labelPosition === 'top'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                              title="Top of input (Default)"
+                            >
+                              Top
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { labelPosition: 'left' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                field.labelPosition === 'left'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                              title="Left side (auto-collapses on mobile)"
+                            >
+                              Left
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { labelPosition: 'hidden' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                field.labelPosition === 'hidden'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                              title="Hidden visually"
+                            >
+                              Hidden
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Element / Content Alignment */}
+                        <div className="space-y-1.5 pt-1">
+                          <Label className="text-xs">Element Alignment</Label>
+                          <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { elementAlign: 'left' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                !field.elementAlign || field.elementAlign === 'left'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              Left
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { elementAlign: 'center' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                field.elementAlign === 'center'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              Center
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { elementAlign: 'right' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                field.elementAlign === 'right'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              Right
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => updateField(field.id, { elementAlign: 'full' })}
+                              className={`py-1 rounded font-medium transition-colors ${
+                                field.elementAlign === 'full'
+                                  ? 'bg-background text-foreground shadow-xs'
+                                  : 'text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              Full
+                            </button>
+                          </div>
                         </div>
 
                         <div className="pt-2 border-t space-y-3">

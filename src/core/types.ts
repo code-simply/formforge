@@ -124,7 +124,8 @@ export interface AvatarConfig {
 
 export interface RowLayoutConfig {
   columnIds: string[]
-  gap?: 'none' | 'sm' | 'md' | 'lg'
+  gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
+  alignItems?: 'top' | 'center' | 'bottom' | 'stretch'
   title?: string
   legend?: string
   fieldset?: boolean
@@ -155,6 +156,8 @@ export interface FormField {
   prefix?: string
   suffix?: string
   labelPosition?: 'top' | 'left' | 'right' | 'hidden'
+  textAlign?: 'left' | 'center' | 'right'
+  elementAlign?: 'left' | 'center' | 'right' | 'full'
   options?: SelectOption[]
   validationRules?: ValidationRule[]
   conditions?: ConditionGroup[]
@@ -170,6 +173,8 @@ export interface FormField {
 export interface FormColumn {
   id: string
   width: number // 1 to 12 in a 12-column grid
+  verticalAlign?: 'top' | 'center' | 'bottom' | 'stretch'
+  horizontalAlign?: 'left' | 'center' | 'right'
   fieldIds: string[]
   columnIds?: string[] // Optional nested sub-columns inside this column
   className?: string
@@ -178,6 +183,8 @@ export interface FormColumn {
 export interface FormRow {
   id: string
   columnIds: string[]
+  alignItems?: 'top' | 'center' | 'bottom' | 'stretch'
+  gap?: 'none' | 'sm' | 'md' | 'lg' | 'xl'
   title?: string // Legend / Title for fieldset row
   fieldset?: boolean // Wrap row in a fieldset border
   className?: string

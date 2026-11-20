@@ -303,40 +303,64 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         )}
 
         {/* Columns Grid with Droppable Columns */}
-        <div className="canvas-row-grid grid grid-cols-12 gap-2 w-full pt-1">
-          {childColIds.map((cId, idx) => {
-            const col = schema.columns[cId]
-            if (!col) return null
-            const nextColId = childColIds[idx + 1]
-            const nextCol = nextColId ? schema.columns[nextColId] : undefined
+        {(() => {
+          const nestedGapClass =
+            field.rowLayoutConfig?.gap === 'none'
+              ? 'gap-0'
+              : field.rowLayoutConfig?.gap === 'sm'
+              ? 'gap-2'
+              : field.rowLayoutConfig?.gap === 'lg'
+              ? 'gap-6'
+              : field.rowLayoutConfig?.gap === 'xl'
+              ? 'gap-8'
+              : 'gap-2'
 
-            return (
-              <DroppableColumn
-                key={cId}
-                column={col}
-                nextColumn={nextCol}
-                columns={schema.columns}
-                fields={schema.fields}
-                selectedFieldId={selectedFieldId}
-                canRemove={childColIds.length > 1}
-                isSubColumn={true}
-                onSelectField={selectField}
-                onDuplicateField={duplicateField}
-                onRemoveField={removeField}
-                onRemoveColumn={() => removeRowLayoutColumn(field.id, cId)}
-                onResizeAdjacent={(newLeft, newRight) => {
-                  const nextWidths = childColIds.map((id) => schema.columns[id]?.width || 6)
-                  nextWidths[idx] = newLeft
-                  nextWidths[idx + 1] = newRight
-                  setRowLayoutColumnWidths(field.id, nextWidths)
-                }}
-                onSplitColumn={splitColumn}
-                onUnsplitColumn={unsplitColumn}
-                onSetSubColumnWidths={setSubColumnWidths}
-              />
-            )
-          })}
-        </div>
+          const nestedAlignClass =
+            field.rowLayoutConfig?.alignItems === 'top'
+              ? 'items-start'
+              : field.rowLayoutConfig?.alignItems === 'center'
+              ? 'items-center'
+              : field.rowLayoutConfig?.alignItems === 'bottom'
+              ? 'items-end'
+              : 'items-stretch'
+
+          return (
+            <div className={cn('canvas-row-grid grid grid-cols-12 w-full pt-1', nestedGapClass, nestedAlignClass)}>
+              {childColIds.map((cId, idx) => {
+                const col = schema.columns[cId]
+                if (!col) return null
+                const nextColId = childColIds[idx + 1]
+                const nextCol = nextColId ? schema.columns[nextColId] : undefined
+
+                return (
+                  <DroppableColumn
+                    key={cId}
+                    column={col}
+                    nextColumn={nextCol}
+                    columns={schema.columns}
+                    fields={schema.fields}
+                    selectedFieldId={selectedFieldId}
+                    canRemove={childColIds.length > 1}
+                    isSubColumn={true}
+                    onSelectField={selectField}
+                    onDuplicateField={duplicateField}
+                    onRemoveField={removeField}
+                    onRemoveColumn={() => removeRowLayoutColumn(field.id, cId)}
+                    onResizeAdjacent={(newLeft, newRight) => {
+                      const nextWidths = childColIds.map((id) => schema.columns[id]?.width || 6)
+                      nextWidths[idx] = newLeft
+                      nextWidths[idx + 1] = newRight
+                      setRowLayoutColumnWidths(field.id, nextWidths)
+                    }}
+                    onSplitColumn={splitColumn}
+                    onUnsplitColumn={unsplitColumn}
+                    onSetSubColumnWidths={setSubColumnWidths}
+                  />
+                )
+              })}
+            </div>
+          )
+        })()}
       </div>
     )
   }

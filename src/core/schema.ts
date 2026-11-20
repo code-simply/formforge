@@ -120,7 +120,8 @@ export const AvatarConfigSchema = z.object({
 
 export const RowLayoutConfigSchema = z.object({
   columnIds: z.array(z.string()).default([]),
-  gap: z.enum(['none', 'sm', 'md', 'lg']).default('md'),
+  gap: z.enum(['none', 'sm', 'md', 'lg', 'xl']).default('md'),
+  alignItems: z.enum(['top', 'center', 'bottom', 'stretch']).optional(),
   title: z.string().optional(),
   legend: z.string().optional(),
   fieldset: z.boolean().optional(),
@@ -152,6 +153,8 @@ export const FormFieldSchema: z.ZodType<any> = z.lazy(() =>
     prefix: z.string().optional(),
     suffix: z.string().optional(),
     labelPosition: z.enum(['top', 'left', 'right', 'hidden']).optional().default('top'),
+    textAlign: z.enum(['left', 'center', 'right']).optional(),
+    elementAlign: z.enum(['left', 'center', 'right', 'full']).optional(),
     options: z.array(SelectOptionSchema).optional(),
     validationRules: z.array(ValidationRuleSchema).optional(),
     conditions: z.array(ConditionGroupSchema).optional(),
@@ -176,6 +179,8 @@ export const FormFieldSchema: z.ZodType<any> = z.lazy(() =>
 export const FormColumnSchema = z.object({
   id: z.string(),
   width: z.number().min(1).max(12).default(12),
+  verticalAlign: z.enum(['top', 'center', 'bottom', 'stretch']).optional(),
+  horizontalAlign: z.enum(['left', 'center', 'right']).optional(),
   fieldIds: z.array(z.string()).default([]),
   columnIds: z.array(z.string()).optional(),
   className: z.string().optional(),
@@ -184,6 +189,8 @@ export const FormColumnSchema = z.object({
 export const FormRowSchema = z.object({
   id: z.string(),
   columnIds: z.array(z.string()).default([]),
+  alignItems: z.enum(['top', 'center', 'bottom', 'stretch']).optional(),
+  gap: z.enum(['none', 'sm', 'md', 'lg', 'xl']).optional(),
   title: z.string().optional(),
   fieldset: z.boolean().optional(),
   className: z.string().optional(),

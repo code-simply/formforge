@@ -737,30 +737,60 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
             ? 'gap-2'
             : field.rowLayoutConfig?.gap === 'lg'
             ? 'gap-6'
+            : field.rowLayoutConfig?.gap === 'xl'
+            ? 'gap-8'
             : 'gap-4'
 
+        const alignClass =
+          field.rowLayoutConfig?.alignItems === 'top'
+            ? 'items-start'
+            : field.rowLayoutConfig?.alignItems === 'center'
+            ? 'items-center'
+            : field.rowLayoutConfig?.alignItems === 'bottom'
+            ? 'items-end'
+            : 'items-stretch'
+
         const content = (
-          <div className={cn('grid grid-cols-12 w-full', gapClass, field.rowLayoutConfig?.className)}>
+          <div className={cn('grid grid-cols-12 w-full', gapClass, alignClass, field.rowLayoutConfig?.className)}>
             {colIds.map((cId) => {
               const col = columns?.[cId]
               if (!col) return null
               const span = Math.min(Math.max(col.width || 12, 1), 12)
+              // Nested columns auto-stack on mobile & tablet, splitting on md: (>=768px)
               const colSpanClass =
-                span === 1 ? 'col-span-12 sm:col-span-1'
-                : span === 2 ? 'col-span-12 sm:col-span-2'
-                : span === 3 ? 'col-span-12 sm:col-span-3'
-                : span === 4 ? 'col-span-12 sm:col-span-4'
-                : span === 5 ? 'col-span-12 sm:col-span-5'
-                : span === 6 ? 'col-span-12 sm:col-span-6'
-                : span === 7 ? 'col-span-12 sm:col-span-7'
-                : span === 8 ? 'col-span-12 sm:col-span-8'
-                : span === 9 ? 'col-span-12 sm:col-span-9'
-                : span === 10 ? 'col-span-12 sm:col-span-10'
-                : span === 11 ? 'col-span-12 sm:col-span-11'
+                span === 1 ? 'col-span-12 md:col-span-1'
+                : span === 2 ? 'col-span-12 md:col-span-2'
+                : span === 3 ? 'col-span-12 md:col-span-3'
+                : span === 4 ? 'col-span-12 md:col-span-4'
+                : span === 5 ? 'col-span-12 md:col-span-5'
+                : span === 6 ? 'col-span-12 md:col-span-6'
+                : span === 7 ? 'col-span-12 md:col-span-7'
+                : span === 8 ? 'col-span-12 md:col-span-8'
+                : span === 9 ? 'col-span-12 md:col-span-9'
+                : span === 10 ? 'col-span-12 md:col-span-10'
+                : span === 11 ? 'col-span-12 md:col-span-11'
                 : 'col-span-12'
 
+              const colSelfAlign =
+                col.verticalAlign === 'top'
+                  ? 'self-start'
+                  : col.verticalAlign === 'center'
+                  ? 'self-center'
+                  : col.verticalAlign === 'bottom'
+                  ? 'self-end'
+                  : col.verticalAlign === 'stretch'
+                  ? 'self-stretch'
+                  : ''
+
+              const colHorizAlign =
+                col.horizontalAlign === 'center'
+                  ? 'items-center text-center'
+                  : col.horizontalAlign === 'right'
+                  ? 'items-end text-right'
+                  : 'items-stretch text-left'
+
               return (
-                <div key={cId} className={cn('flex flex-col space-y-3', colSpanClass, col.className)}>
+                <div key={cId} className={cn('flex flex-col space-y-3', colSpanClass, colSelfAlign, colHorizAlign, col.className)}>
                   {col.fieldIds.map((childFId) => {
                     if (visibleFieldsMap && !visibleFieldsMap[childFId]) return null
                     const childField = fields?.[childFId]
@@ -840,7 +870,40 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
   }
 
   if (isStatic) {
-    return <div className="py-1">{renderControl()}</div>
+    const alignClass =
+      field.elementAlign === 'center'
+        ? 'flex justify-center'
+        : field.elementAlign === 'right'
+        ? 'flex justify-end'
+        : field.elementAlign === 'full'
+        ? 'w-full block'
+        : ''
+
+    return <div className={cn('py-1', alignClass)}>{renderControl()}</div>
+  }
+
+  // Responsive Left Label Layout (stacks vertically on mobile, side-by-side on sm: screens >=640px)
+  if (field.labelPosition === 'left') {
+    return (
+      <div className="flex flex-col sm:flex-row sm:items-start sm:gap-4 py-1.5">
+        <div className="sm:w-1/3 sm:pt-2 sm:text-right shrink-0">
+          <Label className={cn('text-sm font-medium', error && 'text-destructive')}>
+            {field.label}
+            {required && <span className="text-destructive ml-1">*</span>}
+          </Label>
+          {field.helpText && (
+            <span className="block text-[11px] text-muted-foreground">{field.helpText}</span>
+          )}
+        </div>
+        <div className="flex-1 space-y-1">
+          {renderControl()}
+          {field.description && (
+            <p className="text-xs text-muted-foreground">{field.description}</p>
+          )}
+          {error && <p className="text-xs font-medium text-destructive">{error}</p>}
+        </div>
+      </div>
+    )
   }
 
   return (

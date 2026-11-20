@@ -38,12 +38,16 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
   const [title, setTitle] = useState('')
   const [fieldset, setFieldset] = useState(false)
   const [className, setClassName] = useState('')
+  const [alignItems, setAlignItems] = useState<'top' | 'center' | 'bottom' | 'stretch'>('stretch')
+  const [gap, setGap] = useState<'none' | 'sm' | 'md' | 'lg' | 'xl'>('md')
 
   useEffect(() => {
     if (row && isOpen) {
       setTitle(row.title || '')
       setFieldset(!!row.fieldset)
       setClassName(row.className || '')
+      setAlignItems(row.alignItems || 'stretch')
+      setGap(row.gap || 'md')
     }
   }, [row, isOpen])
 
@@ -54,6 +58,8 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
       title: title.trim() || undefined,
       fieldset,
       className: className.trim() || undefined,
+      alignItems,
+      gap,
     })
     onClose()
   }
@@ -117,6 +123,117 @@ export const RowSettingsDialog: React.FC<RowSettingsDialogProps> = ({
             <p className="text-[10px] text-muted-foreground">
               Displayed as the legend banner at the top of the fieldset group.
             </p>
+          </div>
+
+          {/* Vertical Alignment & Gap Spacing */}
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Vertical Alignment</Label>
+              <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setAlignItems('top')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    alignItems === 'top'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Align to Top"
+                >
+                  Top
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlignItems('center')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    alignItems === 'center'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Align to Middle"
+                >
+                  Mid
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlignItems('bottom')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    alignItems === 'bottom'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Align to Bottom"
+                >
+                  Bot
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAlignItems('stretch')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    alignItems === 'stretch'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Stretch Height"
+                >
+                  Fit
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs font-medium">Column Gap</Label>
+              <div className="grid grid-cols-4 gap-1 p-0.5 rounded-md border bg-muted/40 text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setGap('none')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    gap === 'none'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="No Gap (0px)"
+                >
+                  None
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGap('sm')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    gap === 'sm'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Small Gap (8px)"
+                >
+                  Sm
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGap('md')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    gap === 'md'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Medium Gap (16px)"
+                >
+                  Md
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGap('lg')}
+                  className={`py-1 rounded font-medium transition-colors ${
+                    gap === 'lg'
+                      ? 'bg-background text-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Large Gap (24px)"
+                >
+                  Lg
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Column Layout Presets */}

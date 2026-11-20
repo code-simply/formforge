@@ -11,6 +11,9 @@ import {
   ChevronDown,
   Copy,
   Sliders,
+  Monitor,
+  Tablet,
+  Smartphone,
 } from 'lucide-react'
 import { cn } from '../../ui/utils'
 
@@ -40,6 +43,7 @@ export const Canvas: React.FC = () => {
   } = useBuilderStore()
 
   const [activeRowSettingsId, setActiveRowSettingsId] = useState<string | null>(null)
+  const [canvasViewport, setCanvasViewport] = useState<'desktop' | 'tablet' | 'mobile'>('desktop')
 
   const currentPage =
     schema.pages[selectedPageId] || schema.pages[schema.pageOrder[0]]
@@ -95,25 +99,79 @@ export const Canvas: React.FC = () => {
           </Button>
         </div>
 
-        {schema.pageOrder.length > 1 && (
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => {
-              if (confirm('Delete this entire page and its elements?')) {
-                removePage(currentPage.id)
-              }
-            }}
-            className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 ml-1"
-            title="Delete current page"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
-        )}
+        {/* Multi-Device Auto-Responsive Simulator Switcher */}
+        <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5 border rounded-md p-0.5 bg-muted/40">
+            <button
+              type="button"
+              onClick={() => setCanvasViewport('desktop')}
+              className={cn(
+                'p-1.5 rounded transition-colors',
+                canvasViewport === 'desktop'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              title="Desktop View (Full width)"
+            >
+              <Monitor className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCanvasViewport('tablet')}
+              className={cn(
+                'p-1.5 rounded transition-colors',
+                canvasViewport === 'tablet'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              title="Tablet View (768px auto-wrap)"
+            >
+              <Tablet className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setCanvasViewport('mobile')}
+              className={cn(
+                'p-1.5 rounded transition-colors',
+                canvasViewport === 'mobile'
+                  ? 'bg-background text-foreground shadow-xs font-semibold'
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              title="Mobile View (375px auto-stack)"
+            >
+              <Smartphone className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {schema.pageOrder.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                if (confirm('Delete this entire page and its elements?')) {
+                  removePage(currentPage.id)
+                }
+              }}
+              className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0 ml-1"
+              title="Delete current page"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Main Canvas Document Card */}
-      <div className="w-full max-w-4xl bg-background border rounded-xl shadow-sm p-4 sm:p-6 space-y-5">
+      <div
+        className={cn(
+          'bg-background border rounded-xl shadow-sm p-4 sm:p-6 space-y-5 transition-all duration-300 ease-in-out',
+          canvasViewport === 'mobile'
+            ? 'w-[375px] max-w-full'
+            : canvasViewport === 'tablet'
+            ? 'w-[768px] max-w-full'
+            : 'w-full max-w-4xl'
+        )}
+      >
         {/* Page Header Configuration */}
         <div className="border-b pb-3.5 space-y-1.5">
           <input
@@ -292,39 +350,63 @@ export const Canvas: React.FC = () => {
                 </div>
 
                 {/* Columns Grid with Drag Column Resizing */}
-                <div className="canvas-row-grid grid grid-cols-12 gap-2.5 sm:gap-3 pt-1">
-                  {row.columnIds.map((colId, cIdx) => {
-                    const col = schema.columns[colId]
-                    if (!col) return null
-                    const nextColId = row.columnIds[cIdx + 1]
-                    const nextCol = nextColId ? schema.columns[nextColId] : undefined
+                {(() => {
+                  const rowGapClass =
+                    row.gap === 'none'
+                      ? 'gap-0'
+                      : row.gap === 'sm'
+                      ? 'gap-2'
+                      : row.gap === 'lg'
+                      ? 'gap-6'
+                      : row.gap === 'xl'
+                      ? 'gap-8'
+                      : 'gap-2.5 sm:gap-3'
 
-                    return (
-                      <DroppableColumn
-                        key={colId}
-                        column={col}
-                        nextColumn={nextCol}
-                        columns={schema.columns}
-                        fields={schema.fields}
-                        selectedFieldId={selectedFieldId}
-                        canRemove={row.columnIds.length > 1}
-                        onSelectField={(fId) => selectField(fId)}
-                        onDuplicateField={(fId) => duplicateField(fId)}
-                        onRemoveField={(fId) => removeField(fId)}
-                        onResizeAdjacent={(newLeft, newRight) => {
-                          const newWidths = [...row.columnIds.map((id) => schema.columns[id]?.width || 12)]
-                          newWidths[cIdx] = newLeft
-                          newWidths[cIdx + 1] = newRight
-                          setRowColumnWidths(rowId, newWidths)
-                        }}
-                        onRemoveColumn={() => removeColumnFromRow(rowId, colId)}
-                        onSplitColumn={(cId, count) => splitColumn(cId, count)}
-                        onUnsplitColumn={(cId) => unsplitColumn(cId)}
-                        onSetSubColumnWidths={(parentColId, widths) => setSubColumnWidths(parentColId, widths)}
-                      />
-                    )
-                  })}
-                </div>
+                  const rowAlignClass =
+                    row.alignItems === 'top'
+                      ? 'items-start'
+                      : row.alignItems === 'center'
+                      ? 'items-center'
+                      : row.alignItems === 'bottom'
+                      ? 'items-end'
+                      : 'items-stretch'
+
+                  return (
+                    <div className={cn('canvas-row-grid grid grid-cols-12 pt-1', rowGapClass, rowAlignClass)}>
+                      {row.columnIds.map((colId, cIdx) => {
+                        const col = schema.columns[colId]
+                        if (!col) return null
+                        const nextColId = row.columnIds[cIdx + 1]
+                        const nextCol = nextColId ? schema.columns[nextColId] : undefined
+
+                        return (
+                          <DroppableColumn
+                            key={colId}
+                            column={col}
+                            nextColumn={nextCol}
+                            columns={schema.columns}
+                            fields={schema.fields}
+                            selectedFieldId={selectedFieldId}
+                            canRemove={row.columnIds.length > 1}
+                            onSelectField={(fId) => selectField(fId)}
+                            onDuplicateField={(fId) => duplicateField(fId)}
+                            onRemoveField={(fId) => removeField(fId)}
+                            onResizeAdjacent={(newLeft, newRight) => {
+                              const newWidths = [...row.columnIds.map((id) => schema.columns[id]?.width || 12)]
+                              newWidths[cIdx] = newLeft
+                              newWidths[cIdx + 1] = newRight
+                              setRowColumnWidths(rowId, newWidths)
+                            }}
+                            onRemoveColumn={() => removeColumnFromRow(rowId, colId)}
+                            onSplitColumn={(cId, count) => splitColumn(cId, count)}
+                            onUnsplitColumn={(cId) => unsplitColumn(cId)}
+                            onSetSubColumnWidths={(parentColId, widths) => setSubColumnWidths(parentColId, widths)}
+                          />
+                        )
+                      })}
+                    </div>
+                  )
+                })()}
               </div>
             )
           })}
