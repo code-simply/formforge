@@ -1,6 +1,7 @@
 import React from 'react'
 import { Controller, useFormContext } from 'react-hook-form'
 import { FormField } from '../core/types'
+import { getCustomField, CustomFieldComponentProps } from '../core/customFields'
 import { Input } from '../ui/input'
 import { Textarea } from '../ui/textarea'
 import { Label } from '../ui/label'
@@ -26,6 +27,7 @@ export interface FormFieldProps {
   disabled?: boolean
   required?: boolean
   error?: string
+  customFields?: Record<string, React.ComponentType<CustomFieldComponentProps>>
 }
 
 export const FormFieldRenderer: React.FC<FormFieldProps> = ({
@@ -33,13 +35,36 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
   disabled = false,
   required = false,
   error,
+  customFields = {},
 }) => {
   const { control } = useFormContext()
   const fieldKey = field.name || field.id
 
   const isStatic = ['heading', 'paragraph', 'separator', 'button'].includes(field.type)
 
+  // Check for custom field component (passed via prop or globally registered)
+  const CustomComponent = customFields[field.type] || getCustomField(field.type)?.component
+
   const renderControl = () => {
+    if (CustomComponent) {
+      return (
+        <Controller
+          name={fieldKey}
+          control={control}
+          render={({ field: formField }) => (
+            <CustomComponent
+              field={field}
+              value={formField.value}
+              onChange={formField.onChange}
+              disabled={disabled}
+              required={required}
+              error={error}
+            />
+          )}
+        />
+      )
+    }
+
     switch (field.type) {
       case 'text':
       case 'email':

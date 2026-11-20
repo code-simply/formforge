@@ -1,5 +1,6 @@
 import React from 'react'
 import { FormColumn, FormField, FormRow } from '../core/types'
+import { CustomFieldComponentProps } from '../core/customFields'
 import { FormFieldRenderer } from './FormField'
 import { cn } from '../ui/utils'
 
@@ -10,6 +11,7 @@ export interface FormRowProps {
   visibleFieldsMap: Record<string, boolean>
   fieldStateMap: Record<string, { visible: boolean; disabled: boolean; required: boolean }>
   errors: Record<string, any>
+  customFields?: Record<string, React.ComponentType<CustomFieldComponentProps>>
 }
 
 export const FormRowRenderer: React.FC<FormRowProps> = ({
@@ -19,6 +21,7 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
   visibleFieldsMap,
   fieldStateMap,
   errors,
+  customFields,
 }) => {
   return (
     <div className={cn('grid grid-cols-12 gap-4 py-2', row.className)}>
@@ -71,6 +74,7 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
                   disabled={state?.disabled}
                   required={state?.required}
                   error={errorMessage}
+                  customFields={customFields}
                 />
               )
             })}

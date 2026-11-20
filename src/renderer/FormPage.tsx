@@ -1,5 +1,6 @@
 import React from 'react'
 import { FormBuilderSchema, FormPage } from '../core/types'
+import { CustomFieldComponentProps } from '../core/customFields'
 import { FormRowRenderer } from './FormRow'
 
 export interface FormPageProps {
@@ -9,6 +10,7 @@ export interface FormPageProps {
   fieldStateMap: Record<string, { visible: boolean; disabled: boolean; required: boolean }>
   isRowVisible: (row: any) => boolean
   errors: Record<string, any>
+  customFields?: Record<string, React.ComponentType<CustomFieldComponentProps>>
 }
 
 export const FormPageRenderer: React.FC<FormPageProps> = ({
@@ -18,6 +20,7 @@ export const FormPageRenderer: React.FC<FormPageProps> = ({
   fieldStateMap,
   isRowVisible,
   errors,
+  customFields,
 }) => {
   return (
     <div className="space-y-4">
@@ -44,6 +47,7 @@ export const FormPageRenderer: React.FC<FormPageProps> = ({
               visibleFieldsMap={visibleFieldsMap}
               fieldStateMap={fieldStateMap}
               errors={errors}
+              customFields={customFields}
             />
           )
         })}

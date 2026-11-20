@@ -1,6 +1,7 @@
 import React from 'react'
 import { FormProvider } from 'react-hook-form'
 import { FormBuilderSchema } from '../core/types'
+import { CustomFieldComponentProps } from '../core/customFields'
 import { useFormEngine } from './useFormEngine'
 import { FormPageRenderer } from './FormPage'
 import { Button } from '../ui/button'
@@ -14,6 +15,7 @@ export interface FormRendererProps {
   onSubmit?: (data: Record<string, unknown>) => void
   className?: string
   cardWrapper?: boolean
+  customFields?: Record<string, React.ComponentType<CustomFieldComponentProps>>
 }
 
 export const FormRenderer: React.FC<FormRendererProps> = ({
@@ -22,6 +24,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   onSubmit,
   className,
   cardWrapper = true,
+  customFields,
 }) => {
   const engine = useFormEngine({
     schema,
@@ -107,6 +110,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             fieldStateMap={fieldStateMap}
             isRowVisible={isRowVisible}
             errors={errors}
+            customFields={customFields}
           />
         )}
 
