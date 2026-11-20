@@ -111,6 +111,209 @@ export function ConsumerForm({ schema }: { schema: FormBuilderSchema }) {
 
 ---
 
+## ⚡ Webhook Engine & Creative Integrations
+
+ShadForm features a built-in webhook pipeline that transforms, enriches, and dispatches form responses directly to any backend, API, or third-party service without requiring intermediate glue code.
+
+### 1. Webhook Pipeline Architecture
+
+```mermaid
+flowchart LR
+    A[Form Submission] --> B[Raw Field Values]
+    B --> C[Key Remapping Engine]
+    C -->|Dot Notation| D[Nested JSON Objects]
+    E[Static Constants] --> F[Merged Payload]
+    D --> F
+    F --> G[Custom HTTP Headers]
+    G --> H[Live Endpoint / Service]
+```
+
+### 2. Configuration Specification (`WebhookConfig`)
+
+Configure webhooks visually in the **Webhook Dialog** or programmatically via schema settings:
+
+```typescript
+export interface WebhookConfig {
+  enabled: boolean
+  url: string
+  method: 'POST' | 'PUT'
+  headers?: Record<string, string>       // e.g. Authorization: "Bearer sk_...", X-API-Key
+  keyMapping?: Record<string, string>    // Map field IDs to clean keys or dot-notation paths
+  staticPayload?: Record<string, unknown>// Inject constant metadata into every payload
+}
+```
+
+#### Dynamic Dot-Notation Key Remapping
+Raw field IDs (e.g. `field_email_123`) can be remapped directly to nested JSON structures:
+
+* **Before (Raw Submission)**:
+  ```json
+  {
+    "field_email_123": "alex@acme.com",
+    "field_first_456": "Alex",
+    "field_last_789": "Morgan"
+  }
+  ```
+* **Key Mapping Rule**:
+  ```json
+  {
+    "field_email_123": "user.contact.email",
+    "field_first_456": "user.profile.firstName",
+    "field_last_789": "user.profile.lastName"
+  }
+  ```
+* **After (Remapped Outgoing Payload)**:
+  ```json
+  {
+    "user": {
+      "contact": { "email": "alex@acme.com" },
+      "profile": { "firstName": "Alex", "lastName": "Morgan" }
+    }
+  }
+  ```
+
+---
+
+### 3. Creative Integration Recipes
+
+#### Recipe 1: Direct Discord / Slack Alerts (Zero Backend Needed)
+Send real-time alerts into your team's Slack or Discord channel without deploying a server:
+
+* **Endpoint URL**: `https://discord.com/api/webhooks/YOUR_WEBHOOK_ID/YOUR_TOKEN`
+* **Key Remapping**:
+  * Remap your feedback/message field $\to$ `"content"`
+* **Static Payload**:
+  ```json
+  {
+    "username": "ShadForm Notifier",
+    "avatar_url": "https://raw.githubusercontent.com/code-simply/formforge/main/public/icon.png"
+  }
+  ```
+
+---
+
+#### Recipe 2: AI Agent & LLM Automation Pipeline
+Connect form responses directly to an AI agent (e.g., OpenAI, Anthropic, or Google Gemini) for automated sentiment analysis, classification, and auto-drafted replies:
+
+* **Endpoint URL**: `https://api.your-agent-service.com/v1/analyze`
+* **Custom Headers**:
+  ```http
+  Authorization: Bearer sk-your-api-key
+  X-AI-Model: gemini-1.5-pro
+  ```
+* **Key Remapping**:
+  * `field_feedback` $\to$ `"user_prompt"`
+* **Static Payload**:
+  ```json
+  {
+    "task": "sentiment_analysis_and_auto_reply",
+    "max_tokens": 500,
+    "temperature": 0.2
+  }
+  ```
+
+---
+
+#### Recipe 3: Multi-App Automations (Zapier / Make.com / n8n)
+Trigger complex multi-stage workflows across Google Sheets, HubSpot, Notion, and Gmail:
+
+* **Endpoint URL**: `https://hooks.zapier.com/hooks/catch/123456/abcdef/`
+* **Key Remapping**:
+  * Remap internal IDs to clean camelCase (`fullName`, `workEmail`, `teamSize`)
+* **Static Payload**:
+  ```json
+  {
+    "source": "landing_page_waitlist",
+    "campaign": "launch_v1",
+    "environment": "production"
+  }
+  ```
+
+---
+
+#### Recipe 4: Next.js API Route + Database Ingestion (Prisma / Supabase)
+Securely ingest responses into PostgreSQL, Supabase, or MongoDB:
+
+```typescript
+// app/api/webhooks/form/route.ts
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_KEY!)
+
+export async function POST(req: Request) {
+  // 1. Verify custom webhook header
+  const signature = req.headers.get('x-webhook-secret')
+  if (signature !== process.env.FORM_WEBHOOK_SECRET) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // 2. Insert remapped payload directly into database
+  const payload = await req.json()
+  const { data, error } = await supabase.from('leads').insert(payload)
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true, id: data?.[0]?.id }, { status: 200 })
+}
+```
+
+---
+
+### 4. Programmatic Webhook Utilities
+
+Use the core webhook engine directly in your own code:
+
+```typescript
+import { remapFormPayload, sendWebhookPayload, generateCurlSnippet } from 'shadform/core'
+
+const rawValues = {
+  field_name: 'John Doe',
+  field_email: 'john@example.com'
+}
+
+const config = {
+  enabled: true,
+  url: 'https://api.example.com/leads',
+  method: 'POST' as const,
+  headers: { 'Authorization': 'Bearer my_token' },
+  keyMapping: {
+    field_name: 'contact.name',
+    field_email: 'contact.email'
+  },
+  staticPayload: {
+    leadSource: 'organic_web'
+  }
+}
+
+// 1. Transform raw values into clean nested payload
+const cleanPayload = remapFormPayload(rawValues, config.keyMapping, config.staticPayload)
+
+// 2. Dispatch payload with live latency & status tracking
+const result = await sendWebhookPayload(config, rawValues)
+console.log(result.status)  // 200
+console.log(result.message) // 'Webhook delivered successfully'
+
+// 3. Generate ready-to-run terminal cURL snippet for debugging
+const curlCommand = generateCurlSnippet(config, rawValues)
+console.log(curlCommand)
+```
+
+---
+
+### 5. In-Studio Live Inspector & Terminal cURL Testing
+
+The built-in **Webhook Dialog** in `<FormBuilder />` provides:
+- **Send Test Payload Button**: Fires a live HTTP request to your configured endpoint using your current canvas form values.
+- **Real-Time Latency Meter**: Measures response time in milliseconds (e.g. `142ms`).
+- **HTTP Status Badge**: Shows `200 OK` (green) or error codes (`400 Bad Request`, `500 Server Error`).
+- **Response Headers & Body Inspector**: Inspects return data directly inside the studio.
+- **Copy cURL Command**: Generates an exact, executable `curl -X POST ...` command snippet for terminal testing.
+
+---
+
 ## 🛠️ Development & Contributing
 
 Contributions are warmly welcomed! Anyone can clone the repository, run the development environment, and contribute:
