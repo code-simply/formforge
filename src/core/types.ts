@@ -1,0 +1,162 @@
+export type FieldType =
+  | 'text'
+  | 'email'
+  | 'password'
+  | 'number'
+  | 'phone'
+  | 'url'
+  | 'textarea'
+  | 'select'
+  | 'multi-select'
+  | 'checkbox'
+  | 'checkbox-group'
+  | 'radio-group'
+  | 'switch'
+  | 'slider'
+  | 'date'
+  | 'time'
+  | 'file'
+  | 'table-matrix'
+  | 'repeat-row'
+  | 'heading'
+  | 'paragraph'
+  | 'separator'
+  | 'button'
+
+export type ConditionOperator =
+  | 'equals'
+  | 'notEquals'
+  | 'contains'
+  | 'notContains'
+  | 'startsWith'
+  | 'endsWith'
+  | 'greaterThan'
+  | 'greaterThanOrEqual'
+  | 'lessThan'
+  | 'lessThanOrEqual'
+  | 'isEmpty'
+  | 'isNotEmpty'
+  | 'in'
+  | 'notIn'
+
+export type ConditionAction = 'show' | 'hide' | 'enable' | 'disable' | 'require'
+
+export interface ConditionRule {
+  fieldId: string
+  operator: ConditionOperator
+  value?: unknown
+}
+
+export interface ConditionGroup {
+  logic: 'AND' | 'OR'
+  rules: ConditionRule[]
+  action: ConditionAction
+}
+
+export interface SelectOption {
+  label: string
+  value: string
+  disabled?: boolean
+  description?: string
+}
+
+export interface ValidationRule {
+  type: 'min' | 'max' | 'minLength' | 'maxLength' | 'pattern' | 'custom'
+  value: number | string
+  message?: string
+}
+
+export interface MatrixRowConfig {
+  id: string
+  label: string
+  value: string
+}
+
+export interface MatrixColumnConfig {
+  id: string
+  label: string
+  value: string
+}
+
+export interface MatrixFieldConfig {
+  cellType: 'radio' | 'checkbox' | 'text' | 'number'
+  rows: MatrixRowConfig[]
+  columns: MatrixColumnConfig[]
+}
+
+export interface RepeatRowConfig {
+  minRows?: number
+  maxRows?: number
+  addButtonText?: string
+  removeButtonText?: string
+  fieldTemplate: FormField[]
+}
+
+export interface FormField {
+  id: string
+  type: FieldType
+  name: string
+  label: string
+  placeholder?: string
+  description?: string
+  helpText?: string
+  defaultValue?: unknown
+  required?: boolean
+  disabled?: boolean
+  readOnly?: boolean
+  prefix?: string
+  suffix?: string
+  labelPosition?: 'top' | 'left' | 'right' | 'hidden'
+  options?: SelectOption[]
+  validationRules?: ValidationRule[]
+  conditions?: ConditionGroup[]
+  matrixConfig?: MatrixFieldConfig
+  repeatRowConfig?: RepeatRowConfig
+  customAttributes?: Record<string, unknown>
+}
+
+export interface FormColumn {
+  id: string
+  width: number // 1 to 12 in a 12-column grid
+  fieldIds: string[]
+  className?: string
+}
+
+export interface FormRow {
+  id: string
+  columnIds: string[]
+  className?: string
+  conditions?: ConditionGroup[]
+}
+
+export interface FormPage {
+  id: string
+  title: string
+  description?: string
+  rowIds: string[]
+  conditions?: ConditionGroup[]
+}
+
+export interface FormSettings {
+  submitButtonText?: string
+  showResetButton?: boolean
+  resetButtonText?: string
+  layout?: 'standard' | 'compact' | 'comfortable'
+  labelPosition?: 'top' | 'left'
+  theme?: 'light' | 'dark' | 'system'
+  showProgressBar?: boolean
+  allowPageNavigation?: boolean
+}
+
+export interface FormBuilderSchema {
+  id: string
+  version: string
+  title: string
+  description?: string
+  settings: FormSettings
+  pages: Record<string, FormPage>
+  rows: Record<string, FormRow>
+  columns: Record<string, FormColumn>
+  fields: Record<string, FormField>
+  pageOrder: string[]
+}
