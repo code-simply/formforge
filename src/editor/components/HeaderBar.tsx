@@ -74,7 +74,7 @@ export const HeaderBar: React.FC = () => {
         <div className="flex items-center space-x-2 font-bold text-foreground shrink-0">
           <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
           <span className="text-xs sm:text-sm font-bold tracking-tight hidden sm:inline">
-            FormForge Studio
+            ShadForm Studio
           </span>
         </div>
         <span className="text-muted-foreground/50 hidden sm:inline">/</span>
