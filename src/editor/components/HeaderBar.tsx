@@ -15,10 +15,12 @@ import {
   Moon,
   Code2,
   Webhook,
+  Inbox,
 } from 'lucide-react'
 import { JsonDialog } from './JsonDialog'
 import { CodeDialog } from './CodeDialog'
 import { WebhookDialog } from './WebhookDialog'
+import { SubmissionsDialog } from './SubmissionsDialog'
 import { TEMPLATES } from '../templates'
 
 export const HeaderBar: React.FC = () => {
@@ -39,8 +41,10 @@ export const HeaderBar: React.FC = () => {
   const [jsonDialogMode, setJsonDialogMode] = useState<'export' | 'import'>('export')
   const [codeDialogOpen, setCodeDialogOpen] = useState(false)
   const [webhookDialogOpen, setWebhookDialogOpen] = useState(false)
+  const [submissionsDialogOpen, setSubmissionsDialogOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
   const [showTemplatesMenu, setShowTemplatesMenu] = useState(false)
+  const submissions = useBuilderStore((s) => s.submissions)
 
   const toggleTheme = () => {
     setIsDark(!isDark)
@@ -156,6 +160,23 @@ export const HeaderBar: React.FC = () => {
         >
           <Code2 className="h-3.5 w-3.5 sm:mr-1.5" />
           <span className="hidden sm:inline">Code</span>
+        </Button>
+
+        {/* Submissions Manager */}
+        <Button
+          variant={submissions.length > 0 ? 'secondary' : 'outline'}
+          size="sm"
+          onClick={() => setSubmissionsDialogOpen(true)}
+          className="h-8 px-2 sm:px-2.5 text-xs relative"
+          title="View Form Submissions Records"
+        >
+          <Inbox className="h-3.5 w-3.5 sm:mr-1" />
+          <span className="hidden md:inline">Submissions</span>
+          {submissions.length > 0 && (
+            <span className="ml-1 px-1.5 py-0.2 rounded-full bg-foreground text-background text-[10px] font-mono font-bold">
+              {submissions.length}
+            </span>
+          )}
         </Button>
 
         {/* Webhook & Key Remapping */}
@@ -274,6 +295,12 @@ export const HeaderBar: React.FC = () => {
         onClose={() => setWebhookDialogOpen(false)}
         schema={schema}
         onSave={(cfg) => updateSettings({ webhook: cfg })}
+      />
+
+      <SubmissionsDialog
+        isOpen={submissionsDialogOpen}
+        onClose={() => setSubmissionsDialogOpen(false)}
+        schema={schema}
       />
     </header>
   )

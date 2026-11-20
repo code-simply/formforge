@@ -5,6 +5,7 @@ import {
   FormField,
   FormPage,
   FormSettings,
+  FormSubmissionRecord,
 } from '../../core/types'
 import {
   FormRow,
@@ -81,6 +82,12 @@ export interface BuilderState {
   undo: () => void
   redo: () => void
   clear: () => void
+
+  // Submissions Store
+  submissions: FormSubmissionRecord[]
+  addSubmission: (submission: FormSubmissionRecord) => void
+  deleteSubmission: (id: string) => void
+  clearSubmissions: () => void
 }
 
 const MAX_HISTORY = 30
@@ -474,6 +481,24 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
         history: [],
         future: [],
       })
+    },
+
+    submissions: [],
+
+    addSubmission: (submission) => {
+      set((state) => ({
+        submissions: [submission, ...state.submissions],
+      }))
+    },
+
+    deleteSubmission: (id) => {
+      set((state) => ({
+        submissions: state.submissions.filter((s) => s.id !== id),
+      }))
+    },
+
+    clearSubmissions: () => {
+      set({ submissions: [] })
     },
   }
 })

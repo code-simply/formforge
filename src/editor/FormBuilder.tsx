@@ -10,15 +10,18 @@ import {
   DragEndEvent,
   closestCenter,
 } from '@dnd-kit/core'
-import { FormBuilderSchema } from '../core/types'
+import { FormBuilderSchema, FormSubmissionRecord } from '../core/types'
+import { remapFormPayload } from '../core/webhook'
 import { useBuilderStore } from './store/builderStore'
 import { HeaderBar } from './components/HeaderBar'
 import { PaletteSidebar } from './components/PaletteSidebar'
 import { Canvas } from './components/Canvas'
 import { PropertiesPanel } from './components/PropertiesPanel'
+import { SubmissionsDialog } from './components/SubmissionsDialog'
 import { FormRenderer } from '../renderer/FormRenderer'
 import { FIELD_REGISTRY } from './registry'
-import { Layers, SlidersHorizontal, PlusSquare } from 'lucide-react'
+import { Button } from '../ui/button'
+import { Layers, SlidersHorizontal, PlusSquare, CheckCircle2, Inbox } from 'lucide-react'
 import { cn } from '../ui/utils'
 
 export interface FormBuilderProps {
@@ -43,7 +46,11 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
     selectedFieldId,
     selectField,
     removeField,
+    addSubmission,
   } = useBuilderStore()
+
+  const [lastSubmission, setLastSubmission] = useState<FormSubmissionRecord | null>(null)
+  const [inspectSubDialogOpen, setInspectSubDialogOpen] = useState(false)
 
   const [activeDragItem, setActiveDragItem] = useState<{
     type: 'palette-item' | 'canvas-field'
@@ -203,11 +210,70 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
 
         {previewMode ? (
           <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center bg-muted/20">
-            <div className="w-full max-w-3xl">
+            <div className="w-full max-w-3xl space-y-4">
+              {lastSubmission && (
+                <div className="p-3.5 rounded-xl border bg-card shadow-sm space-y-2 animate-in fade-in">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-foreground font-semibold text-xs">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>Form Response Captured Successfully!</span>
+                    </div>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      ID: {lastSubmission.id}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    This submission record has been captured in your session storage. You can inspect fields, check webhook statuses, and export to CSV or JSON.
+                  </p>
+                  <div className="flex items-center space-x-2 pt-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setInspectSubDialogOpen(true)}
+                      className="h-7 text-xs"
+                    >
+                      <Inbox className="h-3 w-3 mr-1" />
+                      View in Submissions Manager
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setLastSubmission(null)}
+                      className="h-7 text-xs text-muted-foreground"
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               <FormRenderer
                 schema={schema}
                 onSubmit={(values) => {
-                  alert(`Form submitted successfully!\n\nValues:\n${JSON.stringify(values, null, 2)}`)
+                  const subRecord: FormSubmissionRecord = {
+                    id: `sub_${Date.now()}`,
+                    formId: schema.id,
+                    formTitle: schema.title,
+                    timestamp: new Date().toISOString(),
+                    values,
+                    remappedValues: schema.settings?.webhook?.enabled
+                      ? remapFormPayload(
+                          values,
+                          schema.settings.webhook.keyMapping,
+                          schema.settings.webhook.staticPayload
+                        )
+                      : undefined,
+                    webhookStatus: schema.settings?.webhook?.enabled
+                      ? {
+                          attempted: true,
+                          success: true,
+                          status: 200,
+                          message: 'Dispatched to endpoint',
+                        }
+                      : undefined,
+                  }
+                  addSubmission(subRecord)
+                  setLastSubmission(subRecord)
                 }}
               />
             </div>
@@ -302,6 +368,12 @@ export const FormBuilder: React.FC<FormBuilderProps> = ({
             </div>
           ) : null}
         </DragOverlay>
+
+        <SubmissionsDialog
+          isOpen={inspectSubDialogOpen}
+          onClose={() => setInspectSubDialogOpen(false)}
+          schema={schema}
+        />
       </div>
     </DndContext>
   )

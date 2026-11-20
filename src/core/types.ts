@@ -236,3 +236,18 @@ export interface FormBuilderSchema {
   fields: Record<string, FormField>
   pageOrder: string[]
 }
+
+export interface FormSubmissionRecord {
+  id: string
+  formId: string
+  formTitle: string
+  timestamp: string
+  values: Record<string, unknown>
+  remappedValues?: Record<string, unknown>
+  webhookStatus?: {
+    attempted: boolean
+    success: boolean
+    status?: number
+    message?: string
+  }
+}
