@@ -23,8 +23,8 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
   errors,
   customFields,
 }) => {
-  return (
-    <div className={cn('grid grid-cols-12 gap-4 py-2', row.className)}>
+  const grid = (
+    <div className={cn('grid grid-cols-12 gap-4', !row.fieldset && 'py-2', row.className)}>
       {row.columnIds.map((colId) => {
         const column = columns[colId]
         if (!column) return null
@@ -83,4 +83,19 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
       })}
     </div>
   )
+
+  if (row.fieldset || row.title) {
+    return (
+      <fieldset className={cn('border rounded-lg p-3 sm:p-4 my-2 bg-card/20 space-y-2', row.className)}>
+        {row.title && (
+          <legend className="text-xs font-semibold px-2 text-foreground tracking-tight">
+            {row.title}
+          </legend>
+        )}
+        {grid}
+      </fieldset>
+    )
+  }
+
+  return grid
 }

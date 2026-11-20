@@ -7,6 +7,9 @@ import {
   FormSettings,
 } from '../../core/types'
 import {
+  FormRow,
+} from '../../core/types'
+import {
   addFieldToColumn,
   addPage,
   addRow,
@@ -15,6 +18,11 @@ import {
   removeField,
   removePage,
   removeRow,
+  setRowColumnWidths,
+  addColumnToRow,
+  removeColumnFromRow,
+  updateRow,
+  duplicateRow,
 } from '../../core/normalizer'
 
 export interface BuilderState {
@@ -47,6 +55,11 @@ export interface BuilderState {
   addRow: (pageId: string, columnWidths?: number[], index?: number) => void
   removeRow: (rowId: string) => void
   moveRow: (pageId: string, rowId: string, newIndex: number) => void
+  updateRow: (rowId: string, partial: Partial<FormRow>) => void
+  duplicateRow: (pageId: string, rowId: string) => void
+  setRowColumnWidths: (rowId: string, widths: number[]) => void
+  addColumnToRow: (rowId: string) => void
+  removeColumnFromRow: (rowId: string, columnId: string) => void
 
   addPage: (title?: string) => void
   removePage: (pageId: string) => void
@@ -244,6 +257,51 @@ export const useBuilderStore = create<BuilderState>((set, get) => {
         },
       }
 
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    updateRow: (rowId, partial) => {
+      const { schema } = get()
+      const nextSchema = updateRow(schema, rowId, partial)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    duplicateRow: (pageId, rowId) => {
+      const { schema } = get()
+      const nextSchema = duplicateRow(schema, pageId, rowId)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    setRowColumnWidths: (rowId, widths) => {
+      const { schema } = get()
+      const nextSchema = setRowColumnWidths(schema, rowId, widths)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    addColumnToRow: (rowId) => {
+      const { schema } = get()
+      const nextSchema = addColumnToRow(schema, rowId)
+      set({
+        schema: nextSchema,
+        ...pushHistory(schema),
+      })
+    },
+
+    removeColumnFromRow: (rowId, columnId) => {
+      const { schema } = get()
+      const nextSchema = removeColumnFromRow(schema, rowId, columnId)
       set({
         schema: nextSchema,
         ...pushHistory(schema),

@@ -480,6 +480,237 @@ export function removeRow(
   }
 }
 
+/**
+ * Sets the widths of all columns in a row
+ */
+export function setRowColumnWidths(
+  schema: FormBuilderSchema,
+  rowId: string,
+  widths: number[]
+): FormBuilderSchema {
+  const row = schema.rows[rowId]
+  if (!row) return schema
+
+  const nextColumns = { ...schema.columns }
+  row.columnIds.forEach((colId, idx) => {
+    if (nextColumns[colId] && widths[idx] !== undefined) {
+      nextColumns[colId] = {
+        ...nextColumns[colId],
+        width: Math.min(Math.max(widths[idx], 1), 12),
+      }
+    }
+  })
+
+  return {
+    ...schema,
+    columns: nextColumns,
+  }
+}
+
+/**
+ * Adds a new column to an existing row and redistributes column widths evenly
+ */
+export function addColumnToRow(
+  schema: FormBuilderSchema,
+  rowId: string
+): FormBuilderSchema {
+  const row = schema.rows[rowId]
+  if (!row) return schema
+
+  if (row.columnIds.length >= 4) return schema
+
+  const newColId = createId('col')
+  const newCount = row.columnIds.length + 1
+  const evenWidth = Math.floor(12 / newCount)
+  const remainder = 12 - evenWidth * newCount
+
+  const nextColumns = { ...schema.columns }
+
+  row.columnIds.forEach((colId, i) => {
+    nextColumns[colId] = {
+      ...nextColumns[colId],
+      width: evenWidth + (i === 0 ? remainder : 0),
+    }
+  })
+
+  nextColumns[newColId] = {
+    id: newColId,
+    width: evenWidth,
+    fieldIds: [],
+  }
+
+  return {
+    ...schema,
+    columns: nextColumns,
+    rows: {
+      ...schema.rows,
+      [rowId]: {
+        ...row,
+        columnIds: [...row.columnIds, newColId],
+      },
+    },
+  }
+}
+
+/**
+ * Removes a column from a row and redistributes remaining column widths
+ */
+export function removeColumnFromRow(
+  schema: FormBuilderSchema,
+  rowId: string,
+  columnId: string
+): FormBuilderSchema {
+  const row = schema.rows[rowId]
+  if (!row || row.columnIds.length <= 1) return schema
+
+  const targetCol = schema.columns[columnId]
+  if (!targetCol) return schema
+
+  const nextColumns = { ...schema.columns }
+  const nextFields = { ...schema.fields }
+  const remainingColIds = row.columnIds.filter((id) => id !== columnId)
+
+  // Move any fields from deleted column to the first remaining column
+  if (targetCol.fieldIds.length > 0 && remainingColIds.length > 0) {
+    const firstColId = remainingColIds[0]
+    nextColumns[firstColId] = {
+      ...nextColumns[firstColId],
+      fieldIds: [...nextColumns[firstColId].fieldIds, ...targetCol.fieldIds],
+    }
+  }
+
+  delete nextColumns[columnId]
+
+  const newCount = remainingColIds.length
+  const evenWidth = Math.floor(12 / newCount)
+  const remainder = 12 - evenWidth * newCount
+
+  remainingColIds.forEach((colId, i) => {
+    nextColumns[colId] = {
+      ...nextColumns[colId],
+      width: evenWidth + (i === 0 ? remainder : 0),
+    }
+  })
+
+  return {
+    ...schema,
+    columns: nextColumns,
+    fields: nextFields,
+    rows: {
+      ...schema.rows,
+      [rowId]: {
+        ...row,
+        columnIds: remainingColIds,
+      },
+    },
+  }
+}
+
+/**
+ * Updates a row's properties (title, fieldset, className, conditions)
+ */
+export function updateRow(
+  schema: FormBuilderSchema,
+  rowId: string,
+  partial: Partial<FormRow>
+): FormBuilderSchema {
+  const row = schema.rows[rowId]
+  if (!row) return schema
+
+  return {
+    ...schema,
+    rows: {
+      ...schema.rows,
+      [rowId]: {
+        ...row,
+        ...partial,
+      },
+    },
+  }
+}
+
+/**
+ * Duplicates a row with all its columns and fields
+ */
+export function duplicateRow(
+  schema: FormBuilderSchema,
+  pageId: string,
+  rowId: string
+): FormBuilderSchema {
+  const row = schema.rows[rowId]
+  const page = schema.pages[pageId]
+  if (!row || !page) return schema
+
+  const newRowId = createId('row')
+  const newColumnIds: string[] = []
+  const newColumns: Record<string, FormColumn> = {}
+  const newFields: Record<string, FormField> = {}
+
+  for (const colId of row.columnIds) {
+    const col = schema.columns[colId]
+    if (!col) continue
+
+    const newColId = createId('col')
+    newColumnIds.push(newColId)
+    const newFieldIds: string[] = []
+
+    for (const fId of col.fieldIds) {
+      const field = schema.fields[fId]
+      if (!field) continue
+
+      const newFieldId = createId('field')
+      newFieldIds.push(newFieldId)
+      newFields[newFieldId] = {
+        ...JSON.parse(JSON.stringify(field)),
+        id: newFieldId,
+        name: `${field.name}_copy`,
+        label: `${field.label} (Copy)`,
+      }
+    }
+
+    newColumns[newColId] = {
+      id: newColId,
+      width: col.width,
+      fieldIds: newFieldIds,
+      className: col.className,
+    }
+  }
+
+  const duplicatedRow: FormRow = {
+    ...JSON.parse(JSON.stringify(row)),
+    id: newRowId,
+    columnIds: newColumnIds,
+    title: row.title ? `${row.title} (Copy)` : undefined,
+  }
+
+  const rowIndex = page.rowIds.indexOf(rowId)
+  const nextRowIds = [...page.rowIds]
+  nextRowIds.splice(rowIndex + 1, 0, newRowId)
+
+  return {
+    ...schema,
+    fields: {
+      ...schema.fields,
+      ...newFields,
+    },
+    columns: {
+      ...schema.columns,
+      ...newColumns,
+    },
+    rows: {
+      ...schema.rows,
+      [newRowId]: duplicatedRow,
+    },
+    pages: {
+      ...schema.pages,
+      [pageId]: {
+        ...page,
+        rowIds: nextRowIds,
+      },
+    },
+  }
+}
+
 export function addPage(
   schema: FormBuilderSchema,
   title?: string

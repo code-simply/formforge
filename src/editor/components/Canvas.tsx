@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useBuilderStore } from '../store/builderStore'
 import { Button } from '../../ui/button'
 import { DroppableColumn } from '../dnd/DroppableColumn'
+import { RowSettingsDialog } from './RowSettingsDialog'
 import {
   Plus,
   Trash2,
   Columns,
   ChevronUp,
   ChevronDown,
+  Copy,
+  Sliders,
 } from 'lucide-react'
 import { cn } from '../../ui/utils'
 
@@ -26,7 +29,14 @@ export const Canvas: React.FC = () => {
     addRow,
     removeRow,
     moveRow,
+    updateRow,
+    duplicateRow,
+    setRowColumnWidths,
+    addColumnToRow,
+    removeColumnFromRow,
   } = useBuilderStore()
+
+  const [activeRowSettingsId, setActiveRowSettingsId] = useState<string | null>(null)
 
   const currentPage =
     schema.pages[selectedPageId] || schema.pages[schema.pageOrder[0]]
@@ -39,8 +49,13 @@ export const Canvas: React.FC = () => {
     )
   }
 
+  const activeSettingsRow = activeRowSettingsId ? schema.rows[activeRowSettingsId] : null
+  const activeSettingsRowWidths = activeSettingsRow
+    ? activeSettingsRow.columnIds.map((id) => schema.columns[id]?.width || 12)
+    : []
+
   return (
-    <main className="flex-1 overflow-y-auto bg-muted/20 p-3 sm:p-6 flex flex-col items-center">
+    <main className="flex-1 overflow-y-auto bg-muted/20 p-3 sm:p-6 flex flex-col items-center select-none">
       {/* Page / Stage Navigation Bar */}
       <div className="w-full max-w-4xl flex items-center justify-between mb-3 sm:mb-4 bg-background border rounded-lg p-1.5 shadow-sm">
         <div className="flex items-center space-x-1 overflow-x-auto no-scrollbar py-0.5">
@@ -117,64 +132,188 @@ export const Canvas: React.FC = () => {
         </div>
 
         {/* Rows List */}
-        <div className="space-y-3.5">
+        <div className="space-y-4">
           {currentPage.rowIds.map((rowId, rIdx) => {
             const row = schema.rows[rowId]
             if (!row) return null
 
+            const colCount = row.columnIds.length
+            const colWidths = row.columnIds.map((id) => schema.columns[id]?.width || 12)
+
             return (
               <div
                 key={rowId}
-                className="group/row relative border border-dashed border-border rounded-lg p-2.5 sm:p-3 hover:border-foreground/30 transition-colors bg-card"
+                className={cn(
+                  'group/row relative border rounded-lg p-2.5 sm:p-3 transition-all bg-card',
+                  row.fieldset
+                    ? 'border-foreground/30 shadow-xs'
+                    : 'border-dashed border-border hover:border-foreground/40'
+                )}
               >
-                {/* Row Controls */}
-                <div className="absolute -top-3 right-2 sm:right-3 opacity-90 sm:opacity-0 group-hover/row:opacity-100 transition-opacity bg-background border rounded-md shadow-sm px-1 py-0.5 flex items-center space-x-0.5 z-10">
+                {/* Fieldset Legend Header (if enabled) */}
+                {(row.fieldset || row.title) && (
+                  <div className="flex items-center space-x-2 mb-2 pb-1.5 border-b border-border/40">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground px-1.5 py-0.5 rounded bg-muted">
+                      Legend
+                    </span>
+                    <input
+                      type="text"
+                      value={row.title || ''}
+                      onChange={(e) => updateRow(rowId, { title: e.target.value })}
+                      placeholder="Row Title / Fieldset Legend..."
+                      className="text-xs font-semibold text-foreground bg-transparent border-none outline-none focus:bg-muted/50 rounded px-1 flex-1 truncate"
+                    />
+                  </div>
+                )}
+
+                {/* Floating Row Control Toolbar */}
+                <div className="absolute -top-3.5 right-2 sm:right-3 opacity-95 sm:opacity-0 group-hover/row:opacity-100 transition-opacity bg-background border rounded-md shadow-md px-1 py-0.5 flex items-center space-x-0.5 z-20">
                   <span className="text-[9px] font-semibold text-muted-foreground px-1 uppercase tracking-wider">
                     Row
                   </span>
+
+                  {/* Add Column Button (up to 4 cols) */}
+                  {colCount < 4 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => addColumnToRow(rowId)}
+                      className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                      title="Add column to this row"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </Button>
+                  )}
+
+                  {/* Quick Layout Presets for 2 and 3 columns */}
+                  {colCount === 2 && (
+                    <div className="flex items-center space-x-0.5 border-x px-1">
+                      <button
+                        type="button"
+                        onClick={() => setRowColumnWidths(rowId, [6, 6])}
+                        className={cn(
+                          'text-[9px] font-mono px-1 py-0.5 rounded',
+                          colWidths[0] === 6 && colWidths[1] === 6
+                            ? 'bg-foreground text-background font-bold'
+                            : 'text-muted-foreground hover:bg-muted'
+                        )}
+                        title="50% / 50%"
+                      >
+                        6:6
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRowColumnWidths(rowId, [4, 8])}
+                        className={cn(
+                          'text-[9px] font-mono px-1 py-0.5 rounded',
+                          colWidths[0] === 4 && colWidths[1] === 8
+                            ? 'bg-foreground text-background font-bold'
+                            : 'text-muted-foreground hover:bg-muted'
+                        )}
+                        title="33% / 67%"
+                      >
+                        4:8
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setRowColumnWidths(rowId, [8, 4])}
+                        className={cn(
+                          'text-[9px] font-mono px-1 py-0.5 rounded',
+                          colWidths[0] === 8 && colWidths[1] === 4
+                            ? 'bg-foreground text-background font-bold'
+                            : 'text-muted-foreground hover:bg-muted'
+                        )}
+                        title="67% / 33%"
+                      >
+                        8:4
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Row & Column Settings Dialog Button */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setActiveRowSettingsId(rowId)}
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    title="Row Settings & Column Presets"
+                  >
+                    <Sliders className="h-3 w-3" />
+                  </Button>
+
+                  {/* Duplicate Row */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => duplicateRow(currentPage.id, rowId)}
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                    title="Duplicate Row"
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+
+                  {/* Reorder Up */}
                   <Button
                     variant="ghost"
                     size="icon"
                     disabled={rIdx === 0}
                     onClick={() => moveRow(currentPage.id, rowId, rIdx - 1)}
-                    className="h-5 w-5"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                    title="Move Row Up"
                   >
-                    <ChevronUp className="h-3 w-3" />
+                    <ChevronUp className="h-3.5 w-3.5" />
                   </Button>
+
+                  {/* Reorder Down */}
                   <Button
                     variant="ghost"
                     size="icon"
                     disabled={rIdx === currentPage.rowIds.length - 1}
                     onClick={() => moveRow(currentPage.id, rowId, rIdx + 1)}
-                    className="h-5 w-5"
+                    className="h-6 w-6 text-muted-foreground hover:text-foreground disabled:opacity-30"
+                    title="Move Row Down"
                   >
-                    <ChevronDown className="h-3 w-3" />
+                    <ChevronDown className="h-3.5 w-3.5" />
                   </Button>
+
+                  {/* Delete Row */}
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => removeRow(rowId)}
-                    className="h-5 w-5 text-muted-foreground hover:text-destructive"
+                    className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                    title="Delete Row"
                   >
                     <Trash2 className="h-3 w-3" />
                   </Button>
                 </div>
 
-                {/* Columns Grid with Droppable Columns */}
-                <div className="grid grid-cols-12 gap-2.5 sm:gap-3 pt-1">
-                  {row.columnIds.map((colId) => {
+                {/* Columns Grid with Drag Column Resizing */}
+                <div className="canvas-row-grid grid grid-cols-12 gap-2.5 sm:gap-3 pt-1">
+                  {row.columnIds.map((colId, cIdx) => {
                     const col = schema.columns[colId]
                     if (!col) return null
+                    const nextColId = row.columnIds[cIdx + 1]
+                    const nextCol = nextColId ? schema.columns[nextColId] : undefined
 
                     return (
                       <DroppableColumn
                         key={colId}
                         column={col}
+                        nextColumn={nextCol}
                         fields={schema.fields}
                         selectedFieldId={selectedFieldId}
+                        canRemove={row.columnIds.length > 1}
                         onSelectField={(fId) => selectField(fId)}
                         onDuplicateField={(fId) => duplicateField(fId)}
                         onRemoveField={(fId) => removeField(fId)}
+                        onResizeAdjacent={(newLeft, newRight) => {
+                          const newWidths = [...row.columnIds.map((id) => schema.columns[id]?.width || 12)]
+                          newWidths[cIdx] = newLeft
+                          newWidths[cIdx + 1] = newRight
+                          setRowColumnWidths(rowId, newWidths)
+                        }}
+                        onRemoveColumn={() => removeColumnFromRow(rowId, colId)}
                       />
                     )
                   })}
@@ -224,9 +363,29 @@ export const Canvas: React.FC = () => {
             >
               2 Cols (2/3 + 1/3)
             </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => addRow(currentPage.id, [3, 3, 3, 3])}
+              className="h-7 text-xs px-2.5"
+            >
+              4 Cols (1/4 each)
+            </Button>
           </div>
         </div>
       </div>
+
+      {/* Row & Column Settings Dialog */}
+      <RowSettingsDialog
+        isOpen={!!activeRowSettingsId}
+        onClose={() => setActiveRowSettingsId(null)}
+        row={activeSettingsRow}
+        columnWidths={activeSettingsRowWidths}
+        onSaveRow={(rowId, partial) => updateRow(rowId, partial)}
+        onApplyPreset={(rowId, widths) => setRowColumnWidths(rowId, widths)}
+        onAddColumn={(rowId) => addColumnToRow(rowId)}
+        onRemoveColumn={(rowId, colId) => removeColumnFromRow(rowId, colId)}
+      />
     </main>
   )
 }

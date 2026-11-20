@@ -172,6 +172,8 @@ export const FormColumnSchema = z.object({
 export const FormRowSchema = z.object({
   id: z.string(),
   columnIds: z.array(z.string()).default([]),
+  title: z.string().optional(),
+  fieldset: z.boolean().optional(),
   className: z.string().optional(),
   conditions: z.array(ConditionGroupSchema).optional(),
 })

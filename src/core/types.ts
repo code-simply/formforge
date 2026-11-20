@@ -166,6 +166,8 @@ export interface FormColumn {
 export interface FormRow {
   id: string
   columnIds: string[]
+  title?: string // Legend / Title for fieldset row
+  fieldset?: boolean // Wrap row in a fieldset border
   className?: string
   conditions?: ConditionGroup[]
 }
