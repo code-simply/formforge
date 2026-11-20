@@ -123,10 +123,34 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
             )
           })
 
+        const cardVariantClass =
+          column.cardVariant === 'bordered'
+            ? 'border rounded-lg bg-card'
+            : column.cardVariant === 'card'
+            ? 'border rounded-lg bg-muted/30 shadow-xs'
+            : ''
+
+        const paddingClass =
+          column.padding === 'sm'
+            ? 'p-2.5'
+            : column.padding === 'md'
+            ? 'p-3.5 sm:p-4'
+            : column.padding === 'lg'
+            ? 'p-5 sm:p-6'
+            : ''
+
         return (
           <div
             key={colId}
-            className={cn('flex flex-col space-y-3', colSpanClass, colSelfAlignClass, colHorizClass, column.className)}
+            className={cn(
+              'flex flex-col space-y-3 cq-column-wrapper',
+              colSpanClass,
+              colSelfAlignClass,
+              colHorizClass,
+              cardVariantClass,
+              paddingClass,
+              column.className
+            )}
           >
             {hasSubColumns ? (
               <div className="grid grid-cols-12 gap-3 w-full">
@@ -135,21 +159,46 @@ export const FormRowRenderer: React.FC<FormRowProps> = ({
                   if (!subCol) return null
                   const subSpan = Math.min(Math.max(subCol.width || 12, 1), 12)
                   const subSpanClass =
-                    subSpan === 1 ? 'col-span-12 md:col-span-1'
-                    : subSpan === 2 ? 'col-span-12 md:col-span-2'
-                    : subSpan === 3 ? 'col-span-12 md:col-span-3'
-                    : subSpan === 4 ? 'col-span-12 md:col-span-4'
-                    : subSpan === 5 ? 'col-span-12 md:col-span-5'
-                    : subSpan === 6 ? 'col-span-12 md:col-span-6'
-                    : subSpan === 7 ? 'col-span-12 md:col-span-7'
-                    : subSpan === 8 ? 'col-span-12 md:col-span-8'
-                    : subSpan === 9 ? 'col-span-12 md:col-span-9'
-                    : subSpan === 10 ? 'col-span-12 md:col-span-10'
-                    : subSpan === 11 ? 'col-span-12 md:col-span-11'
+                    subSpan === 1 ? 'col-span-12 md:col-span-1 cq-auto-stack'
+                    : subSpan === 2 ? 'col-span-12 md:col-span-2 cq-auto-stack'
+                    : subSpan === 3 ? 'col-span-12 md:col-span-3 cq-auto-stack'
+                    : subSpan === 4 ? 'col-span-12 md:col-span-4 cq-auto-stack'
+                    : subSpan === 5 ? 'col-span-12 md:col-span-5 cq-auto-stack'
+                    : subSpan === 6 ? 'col-span-12 md:col-span-6 cq-auto-stack'
+                    : subSpan === 7 ? 'col-span-12 md:col-span-7 cq-auto-stack'
+                    : subSpan === 8 ? 'col-span-12 md:col-span-8 cq-auto-stack'
+                    : subSpan === 9 ? 'col-span-12 md:col-span-9 cq-auto-stack'
+                    : subSpan === 10 ? 'col-span-12 md:col-span-10 cq-auto-stack'
+                    : subSpan === 11 ? 'col-span-12 md:col-span-11 cq-auto-stack'
                     : 'col-span-12'
 
+                  const subCardVariantClass =
+                    subCol.cardVariant === 'bordered'
+                      ? 'border rounded-lg bg-card'
+                      : subCol.cardVariant === 'card'
+                      ? 'border rounded-lg bg-muted/30 shadow-xs'
+                      : ''
+
+                  const subPaddingClass =
+                    subCol.padding === 'sm'
+                      ? 'p-2'
+                      : subCol.padding === 'md'
+                      ? 'p-3'
+                      : subCol.padding === 'lg'
+                      ? 'p-4'
+                      : ''
+
                   return (
-                    <div key={subColId} className={cn('flex flex-col space-y-3', subSpanClass, subCol.className)}>
+                    <div
+                      key={subColId}
+                      className={cn(
+                        'flex flex-col space-y-3',
+                        subSpanClass,
+                        subCardVariantClass,
+                        subPaddingClass,
+                        subCol.className
+                      )}
+                    >
                       {renderFieldList(subCol.fieldIds)}
                     </div>
                   )

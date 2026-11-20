@@ -18,17 +18,20 @@ import {
   Palette,
   LayoutTemplate,
   FormInput,
+  ArrowRight,
 } from 'lucide-react'
-import { ConditionGroup } from '../../core/types'
+import { ConditionGroup, PageBranchRule, ConditionOperator } from '../../core/types'
 
 export const PropertiesPanel: React.FC = () => {
   const {
     schema,
     selectedFieldId,
+    selectedPageId,
     updateField,
     removeField,
     updateSettings,
     selectField,
+    updatePage,
     addRowLayoutColumn,
     setRowLayoutColumnWidths,
   } = useBuilderStore()
@@ -41,6 +44,44 @@ export const PropertiesPanel: React.FC = () => {
 
   // If no field is selected, default to 'form' view
   const currentTab = field ? panelTab : 'form'
+
+  const activePage = schema.pages[selectedPageId] || schema.pages[schema.pageOrder[0]]
+  const branchRules = activePage?.branchRules || []
+  const candidateFields = Object.values(schema.fields).filter(
+    (f) => !['heading', 'paragraph', 'separator', 'logo', 'image', 'avatar'].includes(f.type)
+  )
+  const candidatePages = schema.pageOrder
+    .filter((id) => id !== activePage?.id)
+    .map((id) => schema.pages[id])
+    .filter(Boolean)
+
+  const handleAddBranchRule = () => {
+    if (!activePage || candidateFields.length === 0 || candidatePages.length === 0) return
+    const newRule: PageBranchRule = {
+      id: `rule_${Date.now()}`,
+      fieldId: candidateFields[0].id,
+      operator: 'equals',
+      value: '',
+      targetPageId: candidatePages[0].id,
+    }
+    updatePage(activePage.id, {
+      branchRules: [...(activePage.branchRules || []), newRule],
+    })
+  }
+
+  const handleUpdateBranchRule = (ruleId: string, partial: Partial<PageBranchRule>) => {
+    if (!activePage) return
+    const nextRules = (activePage.branchRules || []).map((r) =>
+      r.id === ruleId ? { ...r, ...partial } : r
+    )
+    updatePage(activePage.id, { branchRules: nextRules })
+  }
+
+  const handleRemoveBranchRule = (ruleId: string) => {
+    if (!activePage) return
+    const nextRules = (activePage.branchRules || []).filter((r) => r.id !== ruleId)
+    updatePage(activePage.id, { branchRules: nextRules })
+  }
 
   const isRowLayout = field ? field.type === 'row-layout' : false
   const isMediaField = field ? ['logo', 'image', 'avatar'].includes(field.type) : false
@@ -268,6 +309,157 @@ export const PropertiesPanel: React.FC = () => {
               />
             </div>
           </div>
+
+          {/* STEP BRANCHING RULES (Active in multi-page forms) */}
+          {schema.pageOrder.length > 1 && activePage && (
+            <div className="pt-3 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center space-x-1.5">
+                    <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Step Branching Rules
+                    </Label>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Jump to target steps when leaving <span className="font-semibold text-foreground">{activePage.title}</span>
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddBranchRule}
+                  disabled={candidateFields.length === 0 || candidatePages.length === 0}
+                  className="h-7 text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" /> Add Rule
+                </Button>
+              </div>
+
+              {branchRules.length === 0 ? (
+                <div className="p-2.5 rounded-md border border-dashed text-center text-xs text-muted-foreground">
+                  No jump rules for this step. Next button navigates to the subsequent step.
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {branchRules.map((rule, idx) => {
+                    const ruleField = schema.fields[rule.fieldId]
+                    return (
+                      <div key={rule.id} className="p-2.5 rounded-lg border bg-muted/30 space-y-2">
+                        <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+                          <span>Rule #{idx + 1}</span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveBranchRule(rule.id)}
+                            className="h-6 w-6 text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <Label className="text-[11px] text-muted-foreground">If Field</Label>
+                          <Select
+                            value={rule.fieldId}
+                            onValueChange={(val) => handleUpdateBranchRule(rule.id, { fieldId: val })}
+                          >
+                            <SelectTrigger className="h-7 text-xs">
+                              <SelectValue placeholder="Select field" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {candidateFields.map((f) => (
+                                <SelectItem key={f.id} value={f.id}>
+                                  {f.label} ({f.name || f.id})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label className="text-[11px] text-muted-foreground">Condition</Label>
+                            <Select
+                              value={rule.operator}
+                              onValueChange={(val: ConditionOperator) =>
+                                handleUpdateBranchRule(rule.id, { operator: val })
+                              }
+                            >
+                              <SelectTrigger className="h-7 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="equals">Equals</SelectItem>
+                                <SelectItem value="notEquals">Does Not Equal</SelectItem>
+                                <SelectItem value="contains">Contains</SelectItem>
+                                <SelectItem value="greaterThan">Greater Than</SelectItem>
+                                <SelectItem value="lessThan">Less Than</SelectItem>
+                                <SelectItem value="isEmpty">Is Empty</SelectItem>
+                                <SelectItem value="isNotEmpty">Is Not Empty</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {!['isEmpty', 'isNotEmpty'].includes(rule.operator) && (
+                            <div className="space-y-1">
+                              <Label className="text-[11px] text-muted-foreground">Match Value</Label>
+                              {ruleField?.options ? (
+                                <Select
+                                  value={String(rule.value || '')}
+                                  onValueChange={(val) => handleUpdateBranchRule(rule.id, { value: val })}
+                                >
+                                  <SelectTrigger className="h-7 text-xs">
+                                    <SelectValue placeholder="Select value" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {ruleField.options.map((opt) => (
+                                      <SelectItem key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <Input
+                                  value={String(rule.value || '')}
+                                  placeholder="Value..."
+                                  onChange={(e) => handleUpdateBranchRule(rule.id, { value: e.target.value })}
+                                  className="h-7 text-xs"
+                                />
+                              )}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="space-y-1 pt-1 border-t">
+                          <Label className="text-[11px] text-muted-foreground font-semibold flex items-center">
+                            <ArrowRight className="h-3 w-3 mr-1 text-foreground" /> Jump To Step
+                          </Label>
+                          <Select
+                            value={rule.targetPageId}
+                            onValueChange={(val) => handleUpdateBranchRule(rule.id, { targetPageId: val })}
+                          >
+                            <SelectTrigger className="h-7 text-xs font-medium">
+                              <SelectValue placeholder="Select target step" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {candidatePages.map((p) => (
+                                <SelectItem key={p.id} value={p.id}>
+                                  {p.title}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
 

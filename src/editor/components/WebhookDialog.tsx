@@ -14,8 +14,20 @@ import { Switch } from '../../ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../ui/select'
 import { FormBuilderSchema, WebhookConfig } from '../../core/types'
-import { remapFormPayload } from '../../core/webhook'
-import { Webhook, Plus, Trash2, ArrowRight, Code, CheckCircle2 } from 'lucide-react'
+import { remapFormPayload, sendWebhookPayload, generateCurlSnippet, WebhookSendResult } from '../../core/webhook'
+import {
+  Webhook,
+  Plus,
+  Trash2,
+  ArrowRight,
+  Code,
+  CheckCircle2,
+  AlertCircle,
+  Copy,
+  Check,
+  SendHorizontal,
+  Loader2,
+} from 'lucide-react'
 
 export interface WebhookDialogProps {
   isOpen: boolean
@@ -37,7 +49,9 @@ export const WebhookDialog: React.FC<WebhookDialogProps> = ({
   const [keyMapping, setKeyMapping] = useState<Record<string, string>>({})
   const [staticPayload, setStaticPayload] = useState<Array<{ key: string; value: string }>>([])
   const [activeTab, setActiveTab] = useState<'endpoint' | 'mapping' | 'static' | 'preview'>('endpoint')
-  const [testSuccess, setTestSuccess] = useState<string | null>(null)
+  const [isTesting, setIsTesting] = useState(false)
+  const [testResult, setTestResult] = useState<(WebhookSendResult & { durationMs: number }) | null>(null)
+  const [curlCopied, setCurlCopied] = useState(false)
 
   // Initialize from schema settings when opened
   useEffect(() => {
@@ -67,7 +81,7 @@ export const WebhookDialog: React.FC<WebhookDialogProps> = ({
       } else {
         setStaticPayload([])
       }
-      setTestSuccess(null)
+      setTestResult(null)
     }
   }, [isOpen, schema])
 
@@ -131,6 +145,64 @@ export const WebhookDialog: React.FC<WebhookDialogProps> = ({
   })
 
   const previewTransformed = remapFormPayload(mockRawData, keyMapping, staticPayloadRecord)
+
+  const handleSendTestPayload = async () => {
+    if (!url.trim()) return
+    setIsTesting(true)
+    setTestResult(null)
+    const startTime = performance.now()
+
+    const headersRecord: Record<string, string> = {}
+    headers.forEach(({ key, value }) => {
+      if (key.trim()) headersRecord[key.trim()] = value
+    })
+
+    const finalConfig: WebhookConfig = {
+      enabled: true,
+      url: url.trim(),
+      method,
+      headers: Object.keys(headersRecord).length > 0 ? headersRecord : undefined,
+      keyMapping: Object.keys(keyMapping).length > 0 ? keyMapping : undefined,
+      staticPayload: Object.keys(staticPayloadRecord).length > 0 ? staticPayloadRecord : undefined,
+    }
+
+    try {
+      const res = await sendWebhookPayload(finalConfig, mockRawData)
+      const duration = Math.round(performance.now() - startTime)
+      setTestResult({ ...res, durationMs: duration })
+    } catch (err: any) {
+      const duration = Math.round(performance.now() - startTime)
+      setTestResult({
+        success: false,
+        status: 0,
+        message: err?.message || 'Failed to dispatch request to endpoint.',
+        durationMs: duration,
+      })
+    } finally {
+      setIsTesting(false)
+    }
+  }
+
+  const handleCopyCurl = () => {
+    const headersRecord: Record<string, string> = {}
+    headers.forEach(({ key, value }) => {
+      if (key.trim()) headersRecord[key.trim()] = value
+    })
+
+    const finalConfig: WebhookConfig = {
+      enabled: true,
+      url: url.trim() || 'https://api.yourdomain.com/webhooks/form-submit',
+      method,
+      headers: Object.keys(headersRecord).length > 0 ? headersRecord : undefined,
+      keyMapping: Object.keys(keyMapping).length > 0 ? keyMapping : undefined,
+      staticPayload: Object.keys(staticPayloadRecord).length > 0 ? staticPayloadRecord : undefined,
+    }
+
+    const curl = generateCurlSnippet(finalConfig, mockRawData)
+    navigator.clipboard.writeText(curl)
+    setCurlCopied(true)
+    setTimeout(() => setCurlCopied(false), 2000)
+  }
 
   const handleSave = () => {
     const headersRecord: Record<string, string> = {}
@@ -357,17 +429,93 @@ export const WebhookDialog: React.FC<WebhookDialogProps> = ({
             {/* TAB: PREVIEW */}
             <TabsContent value="preview" className="mt-0 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-foreground">Live Payload Preview</span>
-                <span className="text-[11px] text-muted-foreground">Generated with sample data</span>
+                <div>
+                  <span className="text-xs font-semibold text-foreground">Live Payload Preview</span>
+                  <p className="text-[11px] text-muted-foreground">Generated with mock data & remapped keys</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyCurl}
+                    className="h-7 text-xs font-mono"
+                  >
+                    {curlCopied ? (
+                      <>
+                        <Check className="h-3 w-3 mr-1 text-emerald-500" />
+                        Copied cURL
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3 w-3 mr-1" />
+                        Copy cURL
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    disabled={isTesting || !url.trim()}
+                    onClick={handleSendTestPayload}
+                    className="h-7 text-xs font-medium"
+                  >
+                    {isTesting ? (
+                      <>
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                        Dispatching...
+                      </>
+                    ) : (
+                      <>
+                        <SendHorizontal className="h-3 w-3 mr-1" />
+                        Test Dispatch
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-              <pre className="p-3 rounded-md bg-muted/60 border font-mono text-xs overflow-x-auto max-h-64 text-foreground">
+
+              <pre className="p-3 rounded-md bg-muted/60 border font-mono text-xs overflow-x-auto max-h-48 text-foreground select-all">
                 {JSON.stringify(previewTransformed, null, 2)}
               </pre>
 
-              {testSuccess && (
-                <div className="flex items-center space-x-1.5 text-xs text-emerald-600 bg-emerald-500/10 p-2 rounded border border-emerald-500/20">
-                  <CheckCircle2 className="h-4 w-4 shrink-0" />
-                  <span>{testSuccess}</span>
+              {/* Live Test Inspector */}
+              {testResult && (
+                <div
+                  className={`p-3 rounded-lg border text-xs space-y-2 ${
+                    testResult.success
+                      ? 'bg-emerald-500/10 border-emerald-500/30'
+                      : 'bg-destructive/10 border-destructive/30'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1.5 font-medium">
+                      {testResult.success ? (
+                        <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      ) : (
+                        <AlertCircle className="h-4 w-4 text-destructive" />
+                      )}
+                      <span className={testResult.success ? 'text-emerald-700 dark:text-emerald-300' : 'text-destructive'}>
+                        {testResult.status} {testResult.message}
+                      </span>
+                    </div>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      Latency: {testResult.durationMs}ms
+                    </span>
+                  </div>
+
+                  {testResult.responseBody !== undefined && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Response Body
+                      </span>
+                      <pre className="p-2 rounded bg-background/80 border font-mono text-[11px] overflow-x-auto max-h-32">
+                        {typeof testResult.responseBody === 'object'
+                          ? JSON.stringify(testResult.responseBody, null, 2)
+                          : String(testResult.responseBody)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               )}
             </TabsContent>

@@ -175,6 +175,8 @@ export interface FormColumn {
   width: number // 1 to 12 in a 12-column grid
   verticalAlign?: 'top' | 'center' | 'bottom' | 'stretch'
   horizontalAlign?: 'left' | 'center' | 'right'
+  cardVariant?: 'flat' | 'bordered' | 'card'
+  padding?: 'none' | 'sm' | 'md' | 'lg'
   fieldIds: string[]
   columnIds?: string[] // Optional nested sub-columns inside this column
   className?: string
@@ -191,12 +193,21 @@ export interface FormRow {
   conditions?: ConditionGroup[]
 }
 
+export interface PageBranchRule {
+  id: string
+  fieldId: string
+  operator: ConditionOperator
+  value?: unknown
+  targetPageId: string
+}
+
 export interface FormPage {
   id: string
   title: string
   description?: string
   rowIds: string[]
   conditions?: ConditionGroup[]
+  branchRules?: PageBranchRule[]
 }
 
 export interface FormSettings {

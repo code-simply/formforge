@@ -9,6 +9,7 @@ import {
   evaluateFieldConditions,
   evaluateRowConditions,
   evaluatePageConditions,
+  evaluateOperator,
 } from '../core/conditions'
 
 export interface UseFormEngineOptions {
@@ -44,6 +45,7 @@ export function useFormEngine({
   onSubmit,
 }: UseFormEngineOptions): FormEngineReturn {
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
+  const [pageHistory, setPageHistory] = useState<number[]>([])
 
   // Extract initial default values from schema fields
   const initialValues = useMemo(() => {
@@ -133,30 +135,37 @@ export function useFormEngine({
       ? Math.round(((currentPageIndex + 1) / visiblePages.length) * 100)
       : 100
 
-  // Validate only visible fields on the current page when moving next
+  // Validate only visible fields on the current page (including nested columns)
   const validateCurrentPage = useCallback(async (): Promise<boolean> => {
     if (!currentPage) return true
 
     const pageFieldsToValidate: string[] = []
-    const visibleSet = new Set<string>()
+
+    const collectFieldsFromCol = (colId: string) => {
+      const col = schema.columns[colId]
+      if (!col) return
+      for (const fId of col.fieldIds) {
+        if (isFieldVisible(fId)) {
+          const field = schema.fields[fId]
+          if (field) {
+            if (field.type === 'row-layout' && field.rowLayoutConfig?.columnIds) {
+              for (const childCId of field.rowLayoutConfig.columnIds) {
+                collectFieldsFromCol(childCId)
+              }
+            } else {
+              pageFieldsToValidate.push(field.name || field.id)
+            }
+          }
+        }
+      }
+    }
 
     for (const rowId of currentPage.rowIds) {
       const row = schema.rows[rowId]
       if (!row || !isRowVisible(row)) continue
 
       for (const colId of row.columnIds) {
-        const col = schema.columns[colId]
-        if (!col) continue
-
-        for (const fId of col.fieldIds) {
-          if (isFieldVisible(fId)) {
-            const field = schema.fields[fId]
-            if (field) {
-              pageFieldsToValidate.push(field.name || field.id)
-              visibleSet.add(field.id)
-            }
-          }
-        }
+        collectFieldsFromCol(colId)
       }
     }
 
@@ -171,16 +180,42 @@ export function useFormEngine({
     const isValid = await validateCurrentPage()
     if (!isValid) return false
 
+    // Check for dynamic conditional branching rules on the current page
+    if (currentPage?.branchRules && currentPage.branchRules.length > 0) {
+      for (const rule of currentPage.branchRules) {
+        const field = schema.fields[rule.fieldId]
+        if (!field) continue
+        const actualValue = formValues[field.name || field.id]
+        const conditionMet = evaluateOperator(rule.operator, actualValue, rule.value)
+
+        if (conditionMet) {
+          const targetIndex = visiblePages.findIndex((p) => p.id === rule.targetPageId)
+          if (targetIndex !== -1 && targetIndex !== currentPageIndex) {
+            setPageHistory((prev) => [...prev, currentPageIndex])
+            setCurrentPageIndex(targetIndex)
+            return true
+          }
+        }
+      }
+    }
+
     if (!isLastPage) {
+      setPageHistory((prev) => [...prev, currentPageIndex])
       setCurrentPageIndex((prev) => Math.min(prev + 1, visiblePages.length - 1))
       return true
     }
     return false
-  }, [validateCurrentPage, isLastPage, visiblePages.length])
+  }, [validateCurrentPage, currentPage, schema.fields, formValues, visiblePages, currentPageIndex, isLastPage])
 
   const goToPrevPage = useCallback(() => {
-    setCurrentPageIndex((prev) => Math.max(prev - 1, 0))
-  }, [])
+    if (pageHistory.length > 0) {
+      const lastIndex = pageHistory[pageHistory.length - 1]
+      setPageHistory((prev) => prev.slice(0, -1))
+      setCurrentPageIndex(lastIndex)
+    } else {
+      setCurrentPageIndex((prev) => Math.max(prev - 1, 0))
+    }
+  }, [pageHistory])
 
   const goToPage = useCallback(
     (index: number) => {

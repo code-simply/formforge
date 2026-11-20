@@ -758,17 +758,17 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
               const span = Math.min(Math.max(col.width || 12, 1), 12)
               // Nested columns auto-stack on mobile & tablet, splitting on md: (>=768px)
               const colSpanClass =
-                span === 1 ? 'col-span-12 md:col-span-1'
-                : span === 2 ? 'col-span-12 md:col-span-2'
-                : span === 3 ? 'col-span-12 md:col-span-3'
-                : span === 4 ? 'col-span-12 md:col-span-4'
-                : span === 5 ? 'col-span-12 md:col-span-5'
-                : span === 6 ? 'col-span-12 md:col-span-6'
-                : span === 7 ? 'col-span-12 md:col-span-7'
-                : span === 8 ? 'col-span-12 md:col-span-8'
-                : span === 9 ? 'col-span-12 md:col-span-9'
-                : span === 10 ? 'col-span-12 md:col-span-10'
-                : span === 11 ? 'col-span-12 md:col-span-11'
+                span === 1 ? 'col-span-12 md:col-span-1 cq-auto-stack'
+                : span === 2 ? 'col-span-12 md:col-span-2 cq-auto-stack'
+                : span === 3 ? 'col-span-12 md:col-span-3 cq-auto-stack'
+                : span === 4 ? 'col-span-12 md:col-span-4 cq-auto-stack'
+                : span === 5 ? 'col-span-12 md:col-span-5 cq-auto-stack'
+                : span === 6 ? 'col-span-12 md:col-span-6 cq-auto-stack'
+                : span === 7 ? 'col-span-12 md:col-span-7 cq-auto-stack'
+                : span === 8 ? 'col-span-12 md:col-span-8 cq-auto-stack'
+                : span === 9 ? 'col-span-12 md:col-span-9 cq-auto-stack'
+                : span === 10 ? 'col-span-12 md:col-span-10 cq-auto-stack'
+                : span === 11 ? 'col-span-12 md:col-span-11 cq-auto-stack'
                 : 'col-span-12'
 
               const colSelfAlign =
@@ -789,8 +789,35 @@ export const FormFieldRenderer: React.FC<FormFieldProps> = ({
                   ? 'items-end text-right'
                   : 'items-stretch text-left'
 
+              const colCardVariant =
+                col.cardVariant === 'bordered'
+                  ? 'border rounded-lg bg-card'
+                  : col.cardVariant === 'card'
+                  ? 'border rounded-lg bg-muted/30 shadow-xs'
+                  : ''
+
+              const colPadding =
+                col.padding === 'sm'
+                  ? 'p-2'
+                  : col.padding === 'md'
+                  ? 'p-3'
+                  : col.padding === 'lg'
+                  ? 'p-4'
+                  : ''
+
               return (
-                <div key={cId} className={cn('flex flex-col space-y-3', colSpanClass, colSelfAlign, colHorizAlign, col.className)}>
+                <div
+                  key={cId}
+                  className={cn(
+                    'flex flex-col space-y-3',
+                    colSpanClass,
+                    colSelfAlign,
+                    colHorizAlign,
+                    colCardVariant,
+                    colPadding,
+                    col.className
+                  )}
+                >
                   {col.fieldIds.map((childFId) => {
                     if (visibleFieldsMap && !visibleFieldsMap[childFId]) return null
                     const childField = fields?.[childFId]

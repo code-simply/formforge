@@ -181,6 +181,8 @@ export const FormColumnSchema = z.object({
   width: z.number().min(1).max(12).default(12),
   verticalAlign: z.enum(['top', 'center', 'bottom', 'stretch']).optional(),
   horizontalAlign: z.enum(['left', 'center', 'right']).optional(),
+  cardVariant: z.enum(['flat', 'bordered', 'card']).optional(),
+  padding: z.enum(['none', 'sm', 'md', 'lg']).optional(),
   fieldIds: z.array(z.string()).default([]),
   columnIds: z.array(z.string()).optional(),
   className: z.string().optional(),
@@ -197,12 +199,21 @@ export const FormRowSchema = z.object({
   conditions: z.array(ConditionGroupSchema).optional(),
 })
 
+export const PageBranchRuleSchema = z.object({
+  id: z.string(),
+  fieldId: z.string(),
+  operator: ConditionOperatorSchema,
+  value: z.unknown().optional(),
+  targetPageId: z.string(),
+})
+
 export const FormPageSchema = z.object({
   id: z.string(),
   title: z.string(),
   description: z.string().optional(),
   rowIds: z.array(z.string()).default([]),
   conditions: z.array(ConditionGroupSchema).optional(),
+  branchRules: z.array(PageBranchRuleSchema).optional(),
 })
 
 export const FormSettingsSchema = z.object({

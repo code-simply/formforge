@@ -117,3 +117,21 @@ export async function sendWebhookPayload(
     }
   }
 }
+
+/**
+ * Generates an executable copyable cURL command snippet for terminal testing
+ */
+export function generateCurlSnippet(
+  config: WebhookConfig,
+  rawValues: Record<string, unknown>
+): string {
+  const payload = remapFormPayload(rawValues, config.keyMapping, config.staticPayload)
+  const headerFlags = Object.entries(config.headers || {})
+    .map(([k, v]) => `-H "${k}: ${v}"`)
+    .join(' ')
+
+  const headerPart = headerFlags ? ` ${headerFlags}` : ''
+  const escapedBody = JSON.stringify(payload).replace(/'/g, `'\\''`)
+
+  return `curl -X ${config.method || 'POST'} "${config.url || 'https://example.com/webhook'}" -H "Content-Type: application/json"${headerPart} -d '${escapedBody}'`
+}

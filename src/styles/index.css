@@ -92,3 +92,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.45);
 }
+
+/* Container Queries for Nesting-Aware Auto-Stacking */
+.cq-column-wrapper {
+  container-type: inline-size;
+}
+
+@container (max-width: 320px) {
+  .cq-auto-stack {
+    grid-column: span 12 / span 12 !important;
+  }
+}
