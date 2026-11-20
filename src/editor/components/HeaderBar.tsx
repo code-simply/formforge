@@ -17,11 +17,13 @@ import {
   Webhook,
   Inbox,
   Columns2,
+  BookOpen,
 } from 'lucide-react'
 import { JsonDialog } from './JsonDialog'
 import { CodeDialog } from './CodeDialog'
 import { WebhookDialog } from './WebhookDialog'
 import { SubmissionsDialog } from './SubmissionsDialog'
+import { CookbookDialog } from './CookbookDialog'
 import { TEMPLATES } from '../templates'
 
 export const HeaderBar: React.FC = () => {
@@ -41,6 +43,7 @@ export const HeaderBar: React.FC = () => {
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false)
   const [jsonDialogMode, setJsonDialogMode] = useState<'export' | 'import'>('export')
   const [codeDialogOpen, setCodeDialogOpen] = useState(false)
+  const [cookbookDialogOpen, setCookbookDialogOpen] = useState(false)
   const [webhookDialogOpen, setWebhookDialogOpen] = useState(false)
   const [submissionsDialogOpen, setSubmissionsDialogOpen] = useState(false)
   const [isDark, setIsDark] = useState(false)
@@ -219,6 +222,18 @@ export const HeaderBar: React.FC = () => {
           <span className="hidden sm:inline">Code</span>
         </Button>
 
+        {/* Interactive Docs & Cookbook */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setCookbookDialogOpen(true)}
+          className="h-8 px-2 sm:px-2.5 text-xs font-medium"
+          title="Interactive Docs & Cookbook"
+        >
+          <BookOpen className="h-3.5 w-3.5 sm:mr-1.5" />
+          <span className="hidden md:inline">Docs & Recipes</span>
+        </Button>
+
         {/* Submissions Manager */}
         <Button
           variant={submissions.length > 0 ? 'secondary' : 'outline'}
@@ -336,6 +351,14 @@ export const HeaderBar: React.FC = () => {
         isOpen={submissionsDialogOpen}
         onClose={() => setSubmissionsDialogOpen(false)}
         schema={schema}
+      />
+
+      <CookbookDialog
+        isOpen={cookbookDialogOpen}
+        onClose={() => setCookbookDialogOpen(false)}
+        onLoadSchema={(recipeSchema) => {
+          setSchema(recipeSchema)
+        }}
       />
     </header>
   )
